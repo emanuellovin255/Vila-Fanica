@@ -1,0 +1,42 @@
+{
+  "name": "vila-fanica",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site de cazare — Vila Fănică, Băile Felix. Codul motorului nu se editează; se propagă cu actualizeaza-motor.",
+  "scripts": {
+    "predev": "tsx scripts/sync-media.ts && tsx scripts/tema.ts",
+    "dev": "next dev",
+    "prebuild": "tsx scripts/sync-media.ts && tsx scripts/tema.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "sync-media": "tsx scripts/sync-media.ts",
+    "analiza": "tsx scripts/analiza.ts",
+    "client-nou": "tsx scripts/client-nou.ts",
+    "verifica": "tsx scripts/verifica.ts",
+    "proba-patch": "tsx scripts/proba-patch.ts",
+    "migrare": "tsx scripts/migrare.ts",
+    "publica": "tsx scripts/publica.ts",
+    "actualizeaza-motor": "tsx scripts/actualizeaza-motor.ts",
+    "tema": "tsx scripts/tema.ts"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "cheerio": "^1.0.0",
+    "sharp": "^0.33.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

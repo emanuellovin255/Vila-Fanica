@@ -1,0 +1,397 @@
+/* ============================================================
+   skin.css — Șablonul 5 · Termal (tasks/T02)
+
+   Doar layout și skin. Totul e încapsulat sub `.skin-termal`, deci
+   încărcarea fișierului ăstuia alături de celelalte patru skin-uri nu
+   atinge nicio altă pagină. Nicio culoare hardcodată (REGULI.md 4):
+   totul din tokenii motorului. Se animează doar `transform` și `opacity`
+   (REGULI.md 11).
+
+   ⚠ CITEȘTE `styles/depth.css` ÎNAINTE SĂ ADAUGI CEVA AICI. Fișierul ăla
+   e gol, cu un necrolog: a purtat exact genul ăsta de efecte legate de
+   scroll și a fost scos în august 2026 fiindcă `animation-range: entry
+   12% cover 42%` ținea secțiuni întregi la `opacity: 0` și lăsa ecrane de
+   alb. NIMIC DE AICI NU FOLOSEȘTE `animation-timeline` sau
+   `animation-range`. Tot ce mișcă pornește ori la încărcare, ori în
+   buclă, ori la hover — niciodată legat de poziția scroll-ului.
+
+   CELE ȘAPTE EFECTE
+     1 · hero cu Ken Burns de 24 s
+     2 · titlu în trepte, fără JS
+     3 · bandă de dotări în mișcare
+     4 · mozaic bento, cu zoom la hover
+     5 · cifre care cresc (singurul JS — CifreCrescatoare.tsx)
+     6 · card de cameră, prețul la hover
+     7 · titluri de secțiune numerotate
+   ============================================================ */
+
+/* ------------------------------------------------------------ 0 · antet */
+
+/* Antetul stă PESTE hero, nu deasupra lui: `main` e tras în sus cu exact
+   înălțimea antetului, plus firul de 1px al bordurii. Antetul rămâne
+   `sticky` (din base.css), deci se comportă normal la scroll. Copiat din
+   skin-ul Șablonului 4 (REGULI.md 2: se copiază, nu se rescrie). */
+.skin-termal main {
+  margin-top: calc(-1 * var(--header-h) - 1px);
+}
+
+.skin-termal .site-header {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.skin-termal .site-header:not(.is-scrolled) .logo-name,
+.skin-termal .site-header:not(.is-scrolled) .logo-tag,
+.skin-termal .site-header:not(.is-scrolled) .nav-links a,
+.skin-termal .site-header:not(.is-scrolled) .lang a {
+  color: var(--on-brand-strong);
+}
+.skin-termal .site-header:not(.is-scrolled) .logo-mark {
+  background: var(--on-brand-glass);
+  border: 1px solid var(--on-brand-border);
+}
+.skin-termal .site-header:not(.is-scrolled) .burger span {
+  background: var(--on-brand);
+}
+
+/* EXCEPȚIA: panoul de meniu de pe telefon are fundal OPAC, deci linkurile
+   lui trebuie să redevină întunecate cât e deschis — altfel se deschide
+   un meniu alb pe alb. */
+@media (max-width: 1024px) {
+  .skin-termal .site-header[data-meniu='deschis']:not(.is-scrolled) .nav-links a {
+    color: var(--ink);
+  }
+}
+
+.skin-termal .site-header.is-scrolled {
+  background: var(--glass-scrolled);
+  border-bottom-color: var(--line);
+  backdrop-filter: blur(14px);
+}
+
+/* -------------------------------------------- 1 · hero cu Ken Burns */
+
+/* Ecran plin. `svh` și nu `vh`, ca bara de adrese de pe telefon să nu
+   taie ultimul rând de text. */
+.skin-termal .hero-termal {
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Ken Burns: 24 de secunde, o scară de 6% și o urcare de 1,2%. Dacă
+   vizitatorul observă mișcarea, e prea mult — asta nu e un zoom de
+   PowerPoint, e felul în care o fotografie fixă nu pare moartă.
+
+   `both` ține ultimul cadru după terminare, deci poza nu sare înapoi.
+   `transform-origin` e pus pe clădire, nu în centrul cadrului: mișcarea
+   trebuie să se închidă PE subiect. */
+.skin-termal .hero-termal__poza {
+  animation: t-kenburns 24s ease-out both;
+  transform-origin: 58% 45%;
+  will-change: transform;
+}
+@keyframes t-kenburns {
+  from { transform: scale(1.06) translate3d(0, 0, 0); }
+  to   { transform: scale(1) translate3d(0, -1.2%, 0); }
+}
+
+/* Voal dublu: sus pentru antetul transparent, jos pentru titlu. Tokenii
+   există deja în tokens.css și sunt derivați din culoarea de brand, deci
+   se schimbă odată cu paleta clientului. */
+.skin-termal .hero-termal::after {
+  background:
+    linear-gradient(
+      180deg,
+      var(--hero-veil-top) 0%,
+      var(--hero-veil-mid) 44%,
+      var(--hero-veil-bot) 100%
+    );
+}
+
+.skin-termal .hero-inner {
+  padding: calc(var(--header-h) + var(--sp-20)) 0 var(--sp-24);
+}
+
+/* Limita de 16ch din base.css e prea îngustă pentru un titlu care
+   trebuie să spună și unde e locul: ar cădea pe patru rânduri. */
+.skin-termal .hero-titlu {
+  max-width: 22ch;
+  line-height: var(--lh-display);
+  text-wrap: balance;
+}
+
+/* ------------------------------------------- 2 · titlu în trepte */
+
+/* Supratitlu, h1, subtitlu și insigne intră unul după altul. Fără JS.
+
+   REGULA 12: starea „ascuns" trăiește DOAR în `from {}`-ul lui
+   `m-fade-up` (definit în motion.css — nu se redefinește aici). Nu punem
+   `opacity: 0` pe element, deci fără JavaScript textul e integral
+   vizibil, iar sub `prefers-reduced-motion` base.css taie durata și
+   întârzierea, deci apare instant. */
+.skin-termal .hero-termal__text > * {
+  animation: m-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.skin-termal .hero-termal__text > :nth-child(1) { animation-delay: 0.1s; }
+.skin-termal .hero-termal__text > :nth-child(2) { animation-delay: 0.22s; }
+.skin-termal .hero-termal__text > :nth-child(3) { animation-delay: 0.34s; }
+.skin-termal .hero-termal__text > :nth-child(4) { animation-delay: 0.46s; }
+
+/* --------------------------------------- 3 · bandă de dotări */
+
+/* Banda stă imediat sub bara de disponibilitate, pe culoarea de brand.
+   `overflow: hidden` e ce face bucla să pară infinită: șirul e de două
+   ori mai lat decât ecranul și se mută cu exact −50%. */
+.skin-termal .banda-dotari {
+  overflow: hidden;
+  padding-block: var(--sp-4);
+  background: var(--brand);
+  color: var(--on-brand);
+  border-block: 1px solid var(--on-brand-line);
+}
+
+.skin-termal .banda-dotari__sir {
+  display: flex;
+  width: max-content;
+  animation: t-marquee 38s linear infinite;
+}
+@keyframes t-marquee {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* La hover se oprește, ca cineva care vrea să citească un rând să poată.
+   Pe telefon nu există hover, deci nu se pierde nimic. */
+.skin-termal .banda-dotari:hover .banda-dotari__sir,
+.skin-termal .banda-dotari:focus-within .banda-dotari__sir {
+  animation-play-state: paused;
+}
+
+.skin-termal .banda-dotari__lista {
+  display: flex;
+  gap: var(--sp-6);
+  margin: 0;
+  padding: 0 var(--sp-3);
+  list-style: none;
+}
+.skin-termal .banda-dotari__element {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--on-brand-soft);
+}
+/* Separatorul e un punct desenat din CSS, nu un caracter în HTML: în
+   HTML ar fi fost citit cu voce tare de cititoarele de ecran, între
+   fiecare două dotări. */
+.skin-termal .banda-dotari__element::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--accent-lift);
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------ 4 · mozaic bento */
+
+/* Grila de bază (4 coloane, prima celulă pe 2×2) e deja în base.css.
+   Aici doar se lărgește ritmul și se adaugă adâncimea: rândurile sunt
+   mai înalte, iar zoom-ul la hover e puțin mai mare decât cel din motor.
+   `overflow: hidden` e tot din base.css, deci poza crește ÎN cadru. */
+.skin-termal .mozaic-grila {
+  grid-auto-rows: clamp(165px, 18.5vw, 250px);
+  gap: var(--sp-4);
+}
+.skin-termal .mozaic-celula {
+  border-radius: var(--radius);
+}
+@media (hover: hover) {
+  .skin-termal .mozaic-celula:hover img {
+    transform: scale(1.05);
+  }
+  /* Luciul care traversează cadrul o dată, la hover. `m-sheen` e deja
+     scris în motion.css — nu se redefinește. */
+  .skin-termal .mozaic-celula::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, var(--sheen), transparent);
+    transform: translateX(-130%);
+    pointer-events: none;
+  }
+  .skin-termal .mozaic-celula:hover::after {
+    animation: m-sheen 900ms var(--ease-out-expo);
+  }
+}
+
+/* ------------------------------------------ 5 · banda de încredere */
+
+/* Cifrele urcă de la zero din `CifreCrescatoare.tsx`, care doar rescrie
+   textul — deci nimic de animat aici. CSS-ul le dă doar greutatea de
+   care au nevoie ca să merite privite: corp mai mare, culoare de accent
+   și cifre tabulare, ca lățimea să nu joace în timp ce numărul crește. */
+.skin-termal .trust {
+  background: var(--surface);
+}
+.skin-termal .trust-item b {
+  font-size: var(--fs-2xl);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------- 6 · card de cameră, la hover */
+
+/* Doar pe dispozitive cu mouse. Pe telefon nu există hover, iar starea ar
+   rămâne lipită după atingere — cardul ar arăta „apăsat" până la
+   următorul tap în altă parte. */
+@media (hover: hover) {
+  .skin-termal .camera .card-media {
+    overflow: hidden;
+  }
+  .skin-termal .camera .card-media img {
+    transition: transform var(--tr-slow) var(--ease-out-expo);
+  }
+  .skin-termal .camera:hover .card-media img {
+    transform: scale(1.03);
+  }
+
+  /* Prețul urcă 8px și se aprinde. Nu apare din nimic: pleacă de la 0,85
+     opacitate, deci e lizibil și în repaus — un preț care se vede doar la
+     hover e un preț ascuns, iar asta îl costă pe om un click în plus. */
+  .skin-termal .camera .price,
+  .skin-termal .camera .price-ask {
+    opacity: 0.85;
+    transition: transform var(--tr-base) var(--ease-out-expo), opacity var(--tr-base);
+  }
+  .skin-termal .camera:hover .price,
+  .skin-termal .camera:hover .price-ask {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------------------------------- 7 · titluri de secțiune numerotate */
+
+/* Copiat din `sabloane/04-carusel-editorial/skin.css` (REGULI.md 2).
+   Numerotarea e pur decorativă și pur CSS: nu intră în DOM, deci nu e
+   citită de cititoarele de ecran și nu poluează structura de titluri
+   pentru crawlere. Contorul pornește de la `main`, deci numerele se
+   renumerotează singure când gazda mută sau scoate o secțiune din
+   `setari.md`. */
+.skin-termal main {
+  counter-reset: skin5-sectiune;
+}
+.skin-termal main > section:not(.hero):not(.semnatura):not(.banda-dotari) .sec-head {
+  counter-increment: skin5-sectiune;
+  position: relative;
+}
+.skin-termal main > section:not(.hero):not(.semnatura):not(.banda-dotari) .sec-head .eyebrow::before {
+  content: counter(skin5-sectiune, decimal-leading-zero);
+  margin-inline-end: var(--sp-3);
+  padding-inline-end: var(--sp-3);
+  border-inline-end: 1px solid var(--line);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------- ritm și colțuri */
+
+/* Bara de disponibilitate, suprapusă pe marginea de jos a hero-ului.
+   Rămâne un element real în flux, deci ancora `#rezervare` și varianta
+   fără-JS funcționează neatinse. */
+.skin-termal .hero-booking-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: calc(-1 * var(--sp-10));
+}
+.skin-termal .hero-booking-wrap > section {
+  padding-block: 0;
+}
+.skin-termal .hero-booking-wrap .booking {
+  box-shadow: var(--sh-lg), var(--sh-xl);
+}
+
+.skin-termal main > section {
+  padding-block: calc(var(--section-pad) * 1.05);
+}
+
+/* Colțuri vizibil rotunjite, spre deosebire de editorialul aproape-drept
+   al Șablonului 4: casa e nouă și primitoare, nu o galerie. Valoarea vine
+   din `date/11-culori-si-fonturi.md` („Rotunjire colțuri: 12px"), deci nu
+   se scrie aici încă o dată. */
+
+/* ------------------------------------------------------ mobil */
+
+@media (max-width: 820px) {
+  /* Bara de disponibilitate nu se mai suprapune: hero-ul e mai scund și
+     suprapunerea ar înghesui exact ce trebuie citit. */
+  .skin-termal .hero-booking-wrap {
+    margin-top: 0;
+  }
+
+  .skin-termal .hero-inner {
+    padding: calc(var(--header-h) + var(--sp-16)) 0 calc(var(--sp-16) + var(--sp-8));
+  }
+  .skin-termal .hero-titlu {
+    max-width: none;
+  }
+
+  /* Banda se plimbă mai repede: pe un ecran de 375px, 38 de secunde
+     pentru un tur complet înseamnă o dotare la fiecare patru secunde. */
+  .skin-termal .banda-dotari__sir {
+    animation-duration: 26s;
+  }
+}
+
+/* ------------------------------------------- mișcare redusă */
+
+/* Trei lucruri, fiecare din alt motiv:
+
+   1. KEN BURNS se oprește complet. Fără regula asta, `animation-duration:
+      0.01ms !important` din base.css l-ar duce instant în cadrul final —
+      corect vizual, dar inutil de calculat.
+   2. BANDA DE DOTARI e cazul periculos: cu durata tăiată la 0,01ms, șirul
+      ar sări direct la `translate3d(-50%)` și jumătate din dotări ar
+      dispărea în afara ecranului. Deci animația se scoate, iar lista se
+      rupe pe rânduri și rămâne întreagă și lizibilă.
+   3. TITLUL nu are nevoie de nimic: ascunderea trăiește doar în `from`-ul
+      keyframe-ului, iar base.css taie deja durata și întârzierea. */
+@media (prefers-reduced-motion: reduce) {
+  .skin-termal .hero-termal__poza {
+    animation: none;
+  }
+
+  .skin-termal .banda-dotari__sir {
+    animation: none;
+    width: auto;
+    flex-wrap: wrap;
+  }
+  .skin-termal .banda-dotari__lista {
+    flex-wrap: wrap;
+    row-gap: var(--sp-2);
+  }
+  /* A doua copie a listei există doar ca să facă bucla continuă. Fără
+     buclă, ar fi șapte dotări scrise de două ori. */
+  .skin-termal .banda-dotari__lista[aria-hidden='true'] {
+    display: none;
+  }
+
+  .skin-termal .mozaic-celula:hover img,
+  .skin-termal .camera:hover .card-media img,
+  .skin-termal .camera:hover .price,
+  .skin-termal .camera:hover .price-ask {
+    transform: none;
+  }
+  .skin-termal .mozaic-celula:hover::after {
+    animation: none;
+  }
+}

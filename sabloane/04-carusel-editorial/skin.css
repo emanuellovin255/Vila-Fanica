@@ -1,0 +1,339 @@
+/* ============================================================
+   skin.css — Șablonul 4 · Carusel editorial (T-Delta)
+
+   Doar layout și skin. Totul e încapsulat sub `.skin-carusel`, deci
+   încărcarea acestui fișier alături de celelalte trei skin-uri nu atinge
+   nicio altă pagină. Nicio culoare hardcodată (REGULI.md 4): totul din
+   tokenii motorului, derivat cu color-mix. Se animează doar transform și
+   opacity (REGULI.md 11).
+
+   CE FACE ȘABLONUL SĂ ARATE A RESORT, NU A PENSIUNE
+     1. antetul e transparent peste carusel și devine plin la scroll;
+     2. hero-ul umple ecranul, cu voal dublu — sus pentru antet, jos
+        pentru titlu;
+     3. titlurile de secțiune sunt numerotate din CSS, cu un filet de
+        accent;
+     4. ritm vertical mai larg și colțuri aproape drepte peste tot.
+   ============================================================ */
+
+/* ------------------------------------------------------------ 1 · antet */
+
+/* Antetul stă PESTE carusel, nu deasupra lui: `main` e tras în sus cu
+   exact înălțimea antetului, plus firul de 1px al bordurii. Antetul
+   rămâne `sticky` (din base.css), deci se comportă normal la scroll —
+   n-am trecut pe `fixed`, care ar fi cerut un spacer și ar fi rupt
+   ancorele `scroll-margin-top`. */
+.skin-carusel main {
+  margin-top: calc(-1 * var(--header-h) - 1px);
+}
+
+.skin-carusel .site-header {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Peste fotografie, tot ce e scris în antet trece pe culoarea de text
+   de pe brand — altfel linkurile gri-închis dispar în voalul de sus. */
+.skin-carusel .site-header:not(.is-scrolled) .logo-name,
+.skin-carusel .site-header:not(.is-scrolled) .logo-tag,
+.skin-carusel .site-header:not(.is-scrolled) .nav-links a,
+.skin-carusel .site-header:not(.is-scrolled) .lang a {
+  color: var(--on-brand-strong);
+}
+.skin-carusel .site-header:not(.is-scrolled) .logo-mark {
+  background: var(--on-brand-glass);
+  border: 1px solid var(--on-brand-border);
+}
+.skin-carusel .site-header:not(.is-scrolled) .burger span {
+  background: var(--on-brand);
+}
+
+/* EXCEPȚIA: panoul de meniu de pe telefon.
+   Sub 1024px, linkurile din antet devin panoul care cade sub el, iar panoul
+   are fundal OPAC (`--surface`, base.css). Regula de mai sus le lăsa albe —
+   text alb pe panou alb, adică un meniu care se deschidea gol. Cât timp
+   panoul e deschis, linkurile lui se întorc la culoarea de text obișnuită.
+   Restul antetului (nume, limbă, burger) rămâne peste fotografie, deci
+   rămâne pe alb. */
+@media (max-width: 1024px) {
+  .skin-carusel .site-header[data-meniu='deschis']:not(.is-scrolled) .nav-links a {
+    color: var(--ink);
+  }
+}
+
+/* La scroll antetul redevine cel din base.css. Nimic de rescris: e de
+   ajuns să nu-l mai facem transparent, iar tranziția de culoare e deja
+   declarată acolo. */
+.skin-carusel .site-header.is-scrolled {
+  background: var(--glass-scrolled);
+  border-bottom-color: var(--line);
+  backdrop-filter: blur(14px);
+}
+
+/* ----------------------------------------------------------- 2 · carusel */
+
+/* Ecran plin: e semnătura șablonului. `svh` și nu `vh`, ca bara de
+   adrese de pe telefon să nu taie ultimul rând de text. */
+.skin-carusel .hero-carusel {
+  min-height: 100svh;
+}
+
+/* Cadrele stau toate montate, suprapuse. Comută din opacity, deci nu se
+   remontează nimic la schimbare: zero reflow, CLS 0. */
+.skin-carusel .carusel-cadre {
+  overflow: hidden;
+}
+.skin-carusel .carusel-cadru {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1200ms var(--ease-out-expo);
+}
+.skin-carusel .carusel-cadru[data-activ='true'] {
+  opacity: 1;
+}
+.skin-carusel .carusel-cadru img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+}
+
+/* Ken Burns: doar pe cadrul activ, doar pe transform. Pornește de la
+   scara la care a intrat, ca trecerea între două cadre să nu sară. */
+.skin-carusel .carusel-cadru[data-activ='true'] img {
+  animation: skin4-kenburns 14s var(--ease-out-expo) forwards;
+}
+@keyframes skin4-kenburns {
+  from { transform: scale(1.06); }
+  to   { transform: scale(1); }
+}
+
+/* Voalul din base.css e calibrat pentru un hero de 88vh. La ecran plin
+   textul stă mai jos, deci partea de jos trebuie să fie mai densă și să
+   înceapă mai devreme — altfel subtitlul cade pe o zonă luminoasă de
+   fotografie și se pierde. */
+.skin-carusel .hero-carusel::after {
+  background:
+    linear-gradient(
+      180deg,
+      var(--hero-veil-top) 0%,
+      var(--hero-veil-mid) 42%,
+      var(--hero-veil-bot) 100%
+    );
+}
+
+.skin-carusel .hero-inner {
+  padding: calc(var(--header-h) + var(--sp-20)) 0 var(--sp-24);
+}
+
+/* Titlul, cu serifa de display la corp mare și tracking strâns. Limita
+   de 16ch din base.css e prea îngustă pentru fraze de tip „Delta
+   Dunării, de la debarcaderul tău": ar cădea pe patru rânduri. */
+.skin-carusel .hero-titlu {
+  max-width: 20ch;
+  line-height: var(--lh-display);
+  text-wrap: balance;
+}
+
+/* Textul intră la fiecare schimbare de cadru — componenta îl remontează
+   cu `key={activ}`, deci animația repornește singură. Un fade + o
+   translație de 12px: destul cât să se simtă, prea puțin cât să
+   distragă. */
+.skin-carusel .carusel-text {
+  animation: skin4-intra 720ms var(--ease-out-expo) both;
+}
+@keyframes skin4-intra {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* -------------------------------------------------- 2b · comenzile */
+
+/* Rândul de comenzi stă lipit de baza caruselului, pe aceeași coloană
+   cu textul. `pointer-events` doar pe butoane: banda în sine nu trebuie
+   să fure click-urile de pe fotografie. */
+.skin-carusel .carusel-comenzi {
+  position: absolute;
+  inset-inline: 0;
+  bottom: var(--sp-8);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  pointer-events: none;
+}
+.skin-carusel .carusel-comenzi > * {
+  pointer-events: auto;
+}
+
+.skin-carusel .carusel-sageata {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-full);
+  color: var(--on-brand);
+  background: var(--on-brand-glass);
+  border: 1px solid var(--on-brand-border);
+  backdrop-filter: blur(10px);
+  transition: transform var(--tr-base), background-color var(--tr-base);
+}
+.skin-carusel .carusel-sageata:hover {
+  background: var(--on-brand-ghost);
+  transform: scale(1.06);
+}
+/* Chevronul e desenat orientat spre dreapta. Prima săgeată îl întoarce. */
+.skin-carusel .carusel-sageata:first-child .icon {
+  transform: rotate(180deg);
+}
+
+.skin-carusel .carusel-puncte {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* Ținta de atins are 24px, cât cere degetul; linia vizibilă e de 2px și
+   stă centrată în ea, prin borduri transparente. Un punct de 2px pe care
+   trebuie să nimerești e o cursă, nu o comandă. */
+.skin-carusel .carusel-punct {
+  display: block;
+  width: 34px;
+  height: 24px;
+  padding: 11px 0;
+  background-clip: content-box;
+  background-color: var(--on-brand-ghost);
+  transition: transform var(--tr-base), background-color var(--tr-base);
+  transform-origin: center;
+}
+.skin-carusel .carusel-punct:hover {
+  background-color: var(--on-brand-soft);
+}
+.skin-carusel .carusel-punct[data-activ='true'] {
+  background-color: var(--accent-lift);
+  transform: scaleX(1.35);
+}
+
+/* Numărul cadrului: 03 / 06. Marchează că mai e ceva de văzut — un
+   carusel fără contor pare o poză care se mișcă singură. */
+.skin-carusel .carusel-numar {
+  margin-inline-start: auto;
+  font-size: var(--fs-sm);
+  color: var(--on-brand-dim);
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+}
+.skin-carusel .carusel-numar b {
+  font-size: var(--fs-lg);
+  color: var(--on-brand);
+  font-weight: var(--fw-semibold);
+}
+
+/* Bara de disponibilitate, suprapusă pe marginea de jos a caruselului.
+   Rămâne un element real în flux, deci ancora `#rezervare` și varianta
+   fără-JS (GET către #rezervare) funcționează neatinse. */
+.skin-carusel .hero-booking-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: calc(-1 * var(--sp-10));
+}
+.skin-carusel .hero-booking-wrap > section {
+  padding-block: 0;
+}
+.skin-carusel .hero-booking-wrap .booking {
+  box-shadow: var(--sh-lg), var(--sh-xl);
+}
+.skin-carusel .hero-booking-wrap + section {
+  padding-top: var(--section-pad);
+}
+
+/* ------------------------------------------- 3 · titluri numerotate */
+
+/* Numerotarea e pur decorativă și pur CSS: nu intră în DOM, deci nu e
+   citită de cititoarele de ecran și nu poluează nici structura de
+   titluri pentru crawlere. Contorul pornește de la `main`, deci
+   numerele se renumerotează singure când gazda mută sau scoate o
+   secțiune din `setari.md`. */
+.skin-carusel main {
+  counter-reset: skin4-sectiune;
+}
+.skin-carusel main > section:not(.hero):not(.semnatura) .sec-head {
+  counter-increment: skin4-sectiune;
+  position: relative;
+}
+.skin-carusel main > section:not(.hero):not(.semnatura) .sec-head .eyebrow::before {
+  content: counter(skin4-sectiune, decimal-leading-zero);
+  margin-inline-end: var(--sp-3);
+  padding-inline-end: var(--sp-3);
+  border-inline-end: 1px solid var(--line);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ritm mai larg decât în celelalte skin-uri: aerul dintre secțiuni e
+   cea mai ieftină diferență între „curat" și „scump". */
+.skin-carusel main > section {
+  padding-block: calc(var(--section-pad) * 1.15);
+}
+
+/* Colțuri aproape drepte peste tot. Editorialul de lux nu are colțuri
+   rotunde de 14px — dar nici 0, care citește a brutalist. */
+.skin-carusel {
+  --radius: 3px;
+}
+/* Pilulele și butoanele rotunde rămân rotunde: un buton dreptunghiular
+   lângă un chip dreptunghiular pierde ierarhia dintre ele. */
+.skin-carusel .btn,
+.skin-carusel .pill,
+.skin-carusel .carusel-sageata {
+  border-radius: var(--r-full);
+}
+
+/* ------------------------------------------------------ 4 · mobil */
+
+@media (max-width: 820px) {
+  /* Bara de disponibilitate nu se mai suprapune: hero-ul e mai scund
+     și suprapunerea ar înghesui exact ce trebuie citit. */
+  .skin-carusel .hero-booking-wrap {
+    margin-top: 0;
+  }
+
+  /* Săgețile dispar — pe telefon se dă swipe, iar două butoane de 44px
+     peste fotografie mănâncă tocmai zona în care degetul trage. Punctele
+     rămân: ele spun câte cadre sunt. */
+  .skin-carusel .carusel-sageata {
+    display: none;
+  }
+  .skin-carusel .carusel-comenzi {
+    bottom: var(--sp-5);
+  }
+
+  .skin-carusel .hero-inner {
+    padding: calc(var(--header-h) + var(--sp-16)) 0 calc(var(--sp-16) + var(--sp-8));
+  }
+  .skin-carusel .hero-titlu {
+    max-width: none;
+  }
+}
+
+/* ------------------------------------------- 5 · mișcare redusă */
+
+/* `prefers-reduced-motion` e respectat în două locuri, fiindcă sunt
+   două lucruri diferite: componenta nu mai pornește autoplay-ul (deci
+   nimic nu se mișcă singur), iar aici se opresc și tranzițiile, ca
+   apăsarea pe o săgeată să comute instant, nu cu un fade de o secundă.
+   Butoanele rămân, deci caruselul e în continuare parcurgibil. */
+@media (prefers-reduced-motion: reduce) {
+  .skin-carusel .carusel-cadru,
+  .skin-carusel .carusel-text,
+  .skin-carusel .carusel-cadru[data-activ='true'] img {
+    transition: none;
+    animation: none;
+  }
+}

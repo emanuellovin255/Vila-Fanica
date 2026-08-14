@@ -1,0 +1,279 @@
+/* ============================================================
+   motion.css — stratul de mișcare.
+
+   Sursă: Web Tamplate/_core/css/motion.css (319 linii), portat.
+   Se încarcă DUPĂ base.css, deci suprascrie la specificitate egală,
+   fără `!important`.
+
+   PRINCIPIUL, care nu se negociază (REGULI.md 12):
+   stările „ascuns" trăiesc exclusiv în `from {}`-urile keyframe-urilor
+   sau în clase pe care le pune JavaScript. Fără JS și sub
+   `prefers-reduced-motion`, pagina rămâne INTEGRAL vizibilă.
+
+   Se animează doar `transform` și `opacity` (REGULI.md 11). Singura
+   excepție e inelul de la butonul WhatsApp, care e `box-shadow` — nu
+   atinge layout-ul, nu declanșează reflow, și rulează pe un element
+   izolat, în afara fluxului.
+
+   Ce s-a schimbat la port: clasele BEM din Web Tamplate
+   (`.btn--primary`, `.hero__title`, `.card--elevated`) au devenit
+   clasele nișei din base.css (`.btn-primary`, `.hero h1`, `.card`).
+   Secțiunile care nu există în nișa asta — proces cu pași, ticker,
+   formular pe mai mulți pași — nu s-au portat.
+
+   Cuprins
+     1 · Reduced motion
+     2 · Keyframes comune
+     3 · Reveal în cascadă
+     4 · Titluri pe linii
+     5 · Eyebrow
+     6 · Hero
+     7 · Butoane
+     8 · Carduri
+     9 · Navigație & antet
+    10 · FAQ
+    11 · Formular
+    12 · Recenzii
+    13 · Secțiunea pe brand
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1 · REDUCED MOTION
+   base.css taie deja durata. Aici tăiem și ÎNTÂRZIEREA: fără asta,
+   un `animation-delay: 700ms both` ar ține elementul la `opacity: 0`
+   timp de 700 ms chiar și pentru cineva care a cerut „fără mișcare".
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+  /* Reveal-ul nu mai depinde de JavaScript: totul e vizibil din start. */
+  .reveal-child { opacity: 1 !important; transform: none !important; }
+}
+
+/* ------------------------------------------------------------
+   2 · KEYFRAMES COMUNE
+   ------------------------------------------------------------ */
+@keyframes m-fade-up { from { opacity: 0; transform: translateY(18px); } }
+@keyframes m-fade-in { from { opacity: 0; } }
+@keyframes m-pop     { from { opacity: 0; transform: scale(0.6); } }
+@keyframes m-slide-x { from { opacity: 0; transform: translateX(var(--from-x, 12px)); } }
+@keyframes m-grow-x  { from { transform: scaleX(0); } }
+@keyframes m-sheen   { from { transform: translateX(-130%); } to { transform: translateX(130%); } }
+@keyframes m-wiggle  { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-9deg); } 60% { transform: rotate(7deg); } }
+@keyframes m-spin    { to { transform: rotate(360deg); } }
+
+/* Linia de titlu urcă din spatele măștii. */
+@keyframes m-line-up { from { transform: translateY(105%); } }
+
+/* ------------------------------------------------------------
+   3 · REVEAL ÎN CASCADĂ
+   `.reveal-child` și `--i` sunt puse exclusiv de lib/reveal.ts.
+
+   STAREA DE REPAUS E VIZIBILĂ, ÎNTOTDEAUNA.
+   Varianta anterioară ținea `.reveal-child` la `opacity: 0` și îl
+   readucea la vizibil doar prin `.is-revealed`, cu o plasă de siguranță
+   care acoperea un singur caz: „JavaScript nu rulează deloc"
+   (`html:not(.js-reveal)`). Nu acoperea cazul mai frecvent — JS rulează,
+   dar IntersectionObserver-ul nu apucă să marcheze o anumită secțiune —
+   care lăsa carduri și blocuri întregi invizibile în mijlocul paginii.
+   Alea erau „spațiile goale albe".
+
+   Acum ascunderea trăiește exclusiv în `from`-ul lui `m-fade-up`: fără
+   `is-revealed`, conținutul e la locul lui și vizibil. Cascada se
+   păstrează prin `animation-delay`, calculat din `--i`.
+   ------------------------------------------------------------ */
+.is-revealed .reveal-child {
+  animation: m-fade-up var(--tr-slow) var(--ease-out-expo)
+    calc(var(--i, 0) * var(--stagger)) both;
+}
+
+/* Dacă secțiunea are copii în cascadă, ea însăși doar se estompează —
+   altfel mișcarea se adună și sare prea mult. */
+.reveal.reveal--children { transform: none; }
+
+/* ------------------------------------------------------------
+   4 · TITLURI PE LINII
+   Măștile `.line` există în HTML. Ascunderea trăiește doar în
+   `from`-ul lui m-line-up, deci fără JS titlul e întreg.
+   Indexul liniei se pune în HTML: style="--l:1"
+   ------------------------------------------------------------ */
+.line { display: block; overflow: hidden; }
+.line > span { display: block; }
+.is-revealed .line > span {
+  animation: m-line-up 780ms var(--ease-out-expo) calc(var(--l, 0) * 90ms) both;
+}
+
+/* ------------------------------------------------------------
+   5 · EYEBROW
+   ------------------------------------------------------------ */
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 1.5px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  background: var(--accent);
+  transform-origin: inline-start;
+}
+.is-revealed .eyebrow::before { animation: m-grow-x 520ms var(--ease-out-expo) 80ms both; }
+.is-revealed .eyebrow { animation: m-fade-in 520ms ease-out both; }
+
+/* ------------------------------------------------------------
+   6 · HERO — intrare la load, fără JavaScript
+   Hero-ul nu așteaptă un IntersectionObserver: e deja în viewport.
+   O animație care depinde de JS aici ar întârzia LCP-ul.
+   ------------------------------------------------------------ */
+.hero h1 .line > span {
+  animation: m-line-up 900ms var(--ease-out-expo) calc(var(--l, 0) * 100ms + 120ms) both;
+}
+.hero .eyebrow { animation: m-fade-in 600ms ease-out 60ms both; }
+.hero .eyebrow::before { animation: m-grow-x 560ms var(--ease-out-expo) 140ms both; }
+.hero-sub { animation: m-fade-up 700ms var(--ease-out-expo) 520ms both; }
+.hero-badges { animation: m-fade-up 700ms var(--ease-out-expo) 600ms both; }
+.hero-cta { animation: m-fade-up 700ms var(--ease-out-expo) 620ms both; }
+
+/* Bara de disponibilitate intră devreme: e principalul element de
+   conversie din pagină, nu o decorațiune. */
+.hero .booking { animation: m-fade-up 800ms var(--ease-out-expo) 320ms both; }
+
+/*
+ * Poza din hero NU se animează. E candidatul la LCP: orice `opacity`
+ * sau `transform` pe ea întârzie momentul în care browserul o
+ * consideră pictată, deci strică exact indicatorul pe care îl
+ * măsurăm (standarde/02, LCP sub 2,5 s).
+ */
+
+/* ------------------------------------------------------------
+   7 · BUTOANE
+   ------------------------------------------------------------ */
+/* Butonul NU se mai ridică la hover — vezi nota de la `.card:hover` din
+   base.css. Un buton are 52 px înălțime: cursorul stă des în ultimii
+   2 px, iar ridicarea îl scotea de sub mouse, ceea ce stingea hover-ul
+   și îl reaprindea la nesfârșit. Apăsarea rămâne: `translateY(1px)` duce
+   butonul ÎN JOS, deci nu fuge de sub cursor, iar `:active` ține oricum
+   cât e butonul mouse-ului apăsat. */
+.btn:active { transform: translateY(1px); }
+
+/* Luciu care traversează CTA-ul principal, o singură dată, la hover.
+   Doar pe dispozitive cu mouse: pe telefon nu există hover, iar o
+   animație care rulează singură ar consuma baterie degeaba. */
+.btn-primary, .btn-accent { position: relative; overflow: hidden; }
+.btn-primary::after, .btn-accent::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, var(--sheen), transparent);
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .btn-primary:hover::after,
+  .btn-accent:hover::after { animation: m-sheen 720ms var(--ease-out-expo); }
+  .btn-wa:hover svg { animation: m-wiggle 520ms ease-in-out; }
+}
+
+/* Starea de încărcare a butonului de trimitere. Clasa vine din
+   components/Formular.tsx. */
+.btn.is-loading { position: relative; color: transparent; pointer-events: none; }
+.btn.is-loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 50%;
+  width: 1.15em;
+  height: 1.15em;
+  margin: -0.575em 0 0 -0.575em;
+  border: 2px solid var(--on-brand-ghost);
+  border-top-color: var(--on-brand);
+  border-radius: var(--r-full);
+  animation: m-spin 700ms linear infinite;
+}
+
+/* Butonul WhatsApp fix, preluat din Elektro Kasper: un inel care se
+   stinge lent, ca ochiul să-l găsească fără ca nimic să se miște
+   efectiv pe pagină. La o cabană, WhatsApp e un canal real de
+   rezervare, nu o decorațiune. */
+@keyframes m-wa-ring {
+  0%   { box-shadow: 0 0 0 0    var(--wa-ring); }
+  70%  { box-shadow: 0 0 0 16px var(--wa-ring-0); }
+  100% { box-shadow: 0 0 0 0    var(--wa-ring-0); }
+}
+.wa-fab {
+  position: fixed;
+  inset-inline-end: var(--sp-5);
+  bottom: var(--sp-5);
+  z-index: var(--z-sticky);
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: var(--wa-green);
+  color: var(--on-accent);
+  box-shadow: var(--sh-md);
+}
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .wa-fab::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: m-wa-ring 2.8s ease-out infinite;
+  }
+  .wa-fab:is(:hover, :focus-visible)::after { animation: none; }
+  .wa-fab:hover svg { animation: m-wiggle 520ms ease-in-out; }
+}
+
+/* ------------------------------------------------------------
+   8 · CARDURI
+   ------------------------------------------------------------ */
+@media (hover: hover) {
+  .card:hover,
+  .camera:hover,
+  .oferta:hover { border-color: var(--accent-tint); }
+}
+
+/* ------------------------------------------------------------
+   9 · NAVIGAȚIE & ANTET
+   Sublinierea din nav e deja în base.css, pe `transform: scaleX()`.
+   Aici doar micșorarea logo-ului la scroll.
+   ------------------------------------------------------------ */
+.logo-mark, .logo-img { transition: transform var(--tr-base) var(--ease-out-expo); }
+.site-header.is-scrolled .logo-mark,
+.site-header.is-scrolled .logo-img { transform: scale(0.92); }
+
+/* ------------------------------------------------------------
+   10 · FAQ
+   Deschiderea se animează; închiderea rămâne instantă — limitare a
+   elementului <details> fără JavaScript suplimentar, pe care o
+   acceptăm ca să păstrăm FAQ-ul funcțional fără JS.
+   ------------------------------------------------------------ */
+details.faq-item[open] .faq-a { animation: m-fade-up 300ms var(--ease-out-expo); }
+
+/* ------------------------------------------------------------
+   11 · FORMULAR
+   ------------------------------------------------------------ */
+.field[data-invalid='true'] { animation: m-slide-x 200ms ease-out; --from-x: -6px; }
+.form-msg { animation: m-fade-up 320ms var(--ease-out-expo); }
+
+/* ------------------------------------------------------------
+   12 · RECENZII
+   Stelele apar una câte una. Indexul se pune în HTML: style="--s:2"
+   ------------------------------------------------------------ */
+.is-revealed .stars > * {
+  display: inline-block;
+  animation: m-pop 380ms var(--ease-out-back) calc(var(--s, 0) * 70ms + 200ms) both;
+}
+
+/* ------------------------------------------------------------
+   13 · SECȚIUNEA PE BRAND
+   ------------------------------------------------------------ */
+.on-brand h2 .line > span { animation-duration: 900ms; }

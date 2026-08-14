@@ -1,0 +1,83 @@
+/* ============================================================
+   icons.css — sistemul de iconuri liniare, inline SVG.
+
+   Sursă: Web Tamplate/_core/css/icons.css (43 linii), portat.
+
+   Fără sprite, fără font de iconuri, fără bibliotecă în package.json
+   (REGULI.md 8). Fiecare <svg> stă în HTML și moștenește culoarea din
+   context prin `currentColor`.
+
+   Grosimea liniei trăiește AICI, nu în componentă. Motivul e optic: o
+   linie de 1,5 la 18px arată mai subțire decât aceeași linie la 32px,
+   deci fiecare mărime își compensează grosimea. Un `stroke-width`
+   scris în JSX ar fi bătut regula de aici și setul s-ar fi rupt.
+   ============================================================ */
+
+.icon {
+  width: 1.5rem;    /* 24px — mărimea implicită */
+  height: 1.5rem;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  /* Rotațiile pe sub-elemente se fac în jurul viewBox-ului, nu în
+     jurul bounding box-ului propriu — altfel un icon cu trasee
+     asimetrice se rotește în jurul unui centru greșit. */
+  transform-box: view-box;
+  transform-origin: center;
+}
+.icon--sm { width: 1.125rem; height: 1.125rem; stroke-width: 2; }
+.icon--lg { width: 2rem;     height: 2rem;     stroke-width: 1.5; }
+
+/* Singurele pline: stelele de notă, WhatsApp și logo-urile sociale.
+   Un contur citește ca „gol" la 14px. */
+.icon--solid { fill: currentColor; stroke: none; }
+
+/* ------------------------------------------------------------
+   Micro-animații. Se pun ca a DOUA clasă pe <svg>, se declanșează la
+   hover pe părinte, doar acolo unde există un cursor. Sub
+   `prefers-reduced-motion` nu rulează deloc — blocul `@media (hover:
+   hover)` nu le pornește singur, iar base.css taie durata oricum.
+   ------------------------------------------------------------ */
+@keyframes ic-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes ic-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes ic-tilt  { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-8deg); } }
+@keyframes ic-beat  { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.12); } }
+
+/* Declanșatorul e EXCLUSIV părintele, niciodată iconul însuși.
+   `.ic-float:hover` mișca iconul cu 3 px sub cursor: la 24 px, asta
+   e destul cât să iasă de sub mouse pe la margine, hover-ul cădea,
+   animația se relua de la capăt — deci un icon care tremura, nu unul
+   care plutea. Cu declanșatorul pe <a>/<button>, care nu se mișcă
+   niciodată, animația rulează o dată și se termină. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a:hover > .ic-nudge, button:hover > .ic-nudge { animation: ic-nudge 600ms ease-in-out; }
+  a:hover > .ic-float, button:hover > .ic-float { animation: ic-float 900ms ease-in-out; }
+  a:hover > .ic-tilt,  button:hover > .ic-tilt  { animation: ic-tilt 500ms ease-in-out; }
+  a:hover > .ic-beat,  button:hover > .ic-beat  { animation: ic-beat 480ms ease-in-out; }
+}
+
+/* Pagina de probă din T04: tot setul, la 18/24/32px, pe fundal
+   deschis și pe fundal închis. Un icon care „sare" din set se vede
+   imediat. Ruta: /_probe/iconuri — nu se generează în producție. */
+.probe-icoane {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--sp-4);
+}
+.probe-icoane figure {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  text-align: center;
+}
+.probe-icoane figcaption { font-size: var(--fs-xs); color: var(--muted); word-break: break-word; }
+.probe-icoane .probe-marimi { display: flex; align-items: baseline; gap: var(--sp-3); }
+.probe-fundal-inchis { background: var(--brand); color: var(--on-brand); }
+.probe-fundal-inchis figure { border-color: var(--on-brand-border); }
+.probe-fundal-inchis figcaption { color: var(--on-brand-dim); }

@@ -1,0 +1,176 @@
+/* ============================================================
+   skin.css — Șablonul 2 · Poveste alternantă (T21)
+
+   Doar layout și skin, încapsulat sub `.skin-poveste`. Nicio culoare
+   hardcodată (REGULI.md 4). Se animează doar transform/opacity, iar
+   starea „ascuns" trăiește exclusiv în `from`-ul keyframe-urilor — deci
+   fără JavaScript, sub `prefers-reduced-motion` sau dacă
+   IntersectionObserver-ul nu apucă să marcheze secțiunea, pagina e
+   integral vizibilă, fără întârziere (REGULI.md 11, 12).
+   ============================================================ */
+
+/* ---------------------------------------------------------------- hero split */
+
+.skin-poveste .hero-split {
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.skin-poveste .hero-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  min-height: 0;
+  /* Mai strâns decât `--section-pad`: hero-ul are deja aer în interior,
+     iar peste el mai stă și antetul. Cu 108px sus și jos, primul ecran
+     era jumătate spațiu gol. */
+  padding-block: clamp(36px, 4.5vw, 72px);
+}
+.skin-poveste .hero-split-text { max-width: 40ch; }
+.skin-poveste .hero-split-text h1 { margin-bottom: var(--sp-5); }
+.skin-poveste .hero-split-text .hero-badges { margin-top: var(--sp-5); margin-bottom: 0; }
+
+/* Insigne pe fundal deschis: variantă „ink", nu cea de sticlă de pe hero
+   întunecat. Aceiași tokeni, alt teren. */
+.skin-poveste .pill-ink {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink-soft);
+  backdrop-filter: none;
+}
+
+/* Imaginea de hero e candidatul la LCP: NU o animăm (REGULI.md 13,
+   standarde/02). Doar îi dăm formă și proporție fixă → CLS 0. */
+.skin-poveste .hero-split-media {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--sh-hairline), var(--sh-lg);
+  aspect-ratio: 4 / 5;
+  /* Fără plafon, pe ecran lat coloana cu poza ieșea mai înaltă decât cea
+     cu text (730 px de text lângă 912 px de poză), iar `align-items:
+     center` transforma diferența în aer deasupra și dedesubtul titlului. */
+  max-height: min(72vh, 620px);
+  background: var(--surface);
+}
+.skin-poveste .hero-split-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.skin-poveste .hero-split-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+}
+.skin-poveste .hero-split-fallback .logo-mark {
+  width: 92px;
+  height: 92px;
+  font-size: var(--fs-3xl);
+}
+
+/* Textul de hero intră la load — nu depinde de JS, dar nici nu blochează
+   LCP-ul (imaginea rămâne neatinsă). */
+.skin-poveste .hero-split-text .eyebrow { animation: m-fade-in 600ms ease-out 40ms both; }
+.skin-poveste .hero-split-text .lede { animation: m-fade-up 700ms var(--ease-out-expo) 360ms both; }
+.skin-poveste .hero-split-text .hero-badges { animation: m-fade-up 700ms var(--ease-out-expo) 460ms both; }
+.skin-poveste .hero-split-text .stack { animation: m-fade-up 700ms var(--ease-out-expo) 560ms both; }
+
+/* ------------------------------------------------------- feature alternant */
+
+/* Feature-urile primesc puțin aer între ele și pierd umbra „card", ca să
+   citească drept coloane de poveste, nu casete. */
+.skin-poveste .feature { padding-block: clamp(18px, 2.4vw, 32px); }
+.skin-poveste .feature .split {
+  box-shadow: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  /* Blocul trebuie să se citească drept o pereche poză + text, nu drept
+     două coloane înalte cât ecranul: la lățimea plină a containerului
+     (1240 px) fiecare jumătate ieșea 595 px lată și 750 px înaltă.
+
+     Plafonul e 1140, nu 1060: la 1060 rămâneau 90 px de fundal gol pe
+     fiecare parte față de grilele de carduri de deasupra și de dedesubt
+     (camere, excursii), iar decalajul se citea ca două benzi albe pe
+     margini, nu ca o alegere de compoziție (T75). */
+  max-width: 1140px;
+  margin-inline: auto;
+}
+
+/*
+ * Apariția la scroll — și motivul pentru care nu mai există „spații albe".
+ *
+ * Varianta anterioară punea `opacity: 0` pe `.split-media` și `.split-body`
+ * imediat ce reveal.ts adăuga `js-reveal` pe <html>, și le readucea la
+ * vizibil DOAR prin `.is-revealed`, pus de IntersectionObserver. Orice
+ * motiv pentru care observerul nu apuca să marcheze secțiunea — pagina
+ * pictată înainte ca observerul să livreze, o captură a paginii întregi,
+ * un scroll programatic, o navigare cu poziția restaurată — lăsa
+ * feature-ul exact așa cum a fost raportat: o casetă albă, cu chenar,
+ * complet goală, deși textul și poza erau în DOM.
+ *
+ * Acum starea „ascuns" trăiește EXCLUSIV în `from`-ul keyframe-urilor
+ * (`m-slide-x`, `m-fade-up`, din motion.css). Fără `is-revealed`,
+ * conținutul e pur și simplu la locul lui, vizibil, neanimat. Animația e
+ * un bonus, nu condiția vizibilității (REGULI.md 12).
+ */
+.skin-poveste .feature .split-media { --from-x: -24px; }
+/* Când feature-ul e „reverse", imaginea e în dreapta → alunecă dinspre dreapta. */
+.skin-poveste .feature .split[data-reverse='true'] .split-media { --from-x: 24px; }
+
+.skin-poveste .feature.is-revealed .split-media {
+  animation: m-slide-x 760ms var(--ease-out-expo) both;
+}
+.skin-poveste .feature.is-revealed .split-body {
+  animation: m-fade-up 760ms var(--ease-out-expo) 120ms both;
+}
+
+/* Densitatea jumătății cu text. Cu padding-ul și corpul de literă din
+   base.css, un feature cu trei buline urca la ~750 px, deci jumătatea cu
+   poza devenea un portret 595×750 tăiat dintr-un cadru orizontal — poză
+   ciuntită și aer mort în jurul textului. */
+.skin-poveste .feature .split-media { min-height: 0; }
+.skin-poveste .feature .split-body { padding: clamp(22px, 2.8vw, 40px); }
+.skin-poveste .feature .split-body h2 { font-size: var(--fs-3xl); line-height: 1.12; }
+.skin-poveste .feature .split-body .lede { font-size: var(--fs-base); margin-top: var(--sp-3); }
+.skin-poveste .feature .split-body ul { margin: 16px 0 20px; gap: 8px; }
+
+/* Camerele sunt ultima secțiune „normală" dinaintea șirului de blocuri
+   alternante. Cu 108 px jos plus 32 sus la primul feature, tranziția
+   era o bandă de 140 px de fundal gol (T75). */
+.skin-poveste .camere { padding-bottom: clamp(24px, 3vw, 44px); }
+
+/* ------------------------------------------------------- locație */
+
+/*
+ * Secțiunea „Locația": un antet, apoi trei blocuri `.feature` care își
+ * iau singure stilul de mai sus (poză + text, cu latura alternând
+ * stânga – dreapta – stânga). Aici doar se strânge aerul dintre antet
+ * și primul bloc: cu `--section-pad` aplicat de două ori, antetul
+ * plutea rupt de blocul pe care îl introduce.
+ */
+.skin-poveste .locatie-antet { padding-block: var(--section-pad) 0; }
+.skin-poveste .locatie-antet .sec-head { margin-bottom: 0; }
+
+/* Blocurile de locație sunt subordonate feature-urilor de deasupra:
+   titlu de rang h3, deci un pas mai mic, dar aceeași familie. */
+.skin-poveste .locatie-bloc .split-body h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  line-height: 1.15;
+  letter-spacing: var(--display-tracking);
+}
+.skin-poveste .locatie-bloc .split-body .lede { margin-top: var(--sp-4); }
+
+@media (max-width: 900px) {
+  .skin-poveste .hero-split-grid {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: var(--sp-6);
+  }
+  /* Imaginea sub text pe mobil, dar tot cu proporție fixă. */
+  .skin-poveste .hero-split-media { aspect-ratio: 16 / 10; }
+  .skin-poveste .hero-split-text { max-width: none; }
+}

@@ -1,0 +1,543 @@
+/* ============================================================
+   skin.css — Șablonul 6 · Irlandez (Casa Irlandeză, Băile Felix)
+
+   Doar layout și skin. Totul e încapsulat sub `.skin-irlandez`, deci
+   încărcarea fișierului ăstuia alături de celelalte cinci skin-uri nu
+   atinge nicio altă pagină. Nicio culoare hardcodată (REGULI.md 4):
+   totul din tokenii motorului. Se animează doar `transform` și `opacity`
+   (REGULI.md 11).
+
+   ⚠ CITEȘTE `styles/depth.css` ÎNAINTE SĂ ADAUGI CEVA AICI. Fișierul ăla
+   e gol, cu un necrolog: a purtat exact genul ăsta de efecte legate de
+   scroll și a fost scos în august 2026 fiindcă `animation-range: entry
+   12% cover 42%` ținea secțiuni întregi la `opacity: 0` și lăsa ecrane de
+   alb. NIMIC DE AICI NU FOLOSEȘTE `animation-timeline` sau
+   `animation-range`. Tot ce mișcă pornește ori la încărcare, ori în
+   buclă — niciodată legat de poziția scroll-ului.
+
+   ------------------------------------------------------------
+   DE UNDE VINE LOOK-UL
+   ------------------------------------------------------------
+   Cerința: „stil irlandez, în stilul lui zagazaga.ro". De acolo s-au luat
+   STRUCTURA ȘI RITMUL, nu culorile și nici fonturile lor (RustSansBlack e
+   comercial):
+
+     · antet subțire, transparent peste hero, opac la derulare
+     · titlu uriaș în majuscule, delimitator desenat, subtitlu-ștampilă
+     · MARGINE RUPTĂ DE HÂRTIE la baza hero-ului
+     · fundal de hârtie cu textură fină
+     · tipar de secțiune: etichetă mică → titlu mare → text → un CTA
+     · GRILA DE CERCURI conturate pentru facilități
+     · bandă cu nume în mișcare lentă
+
+   Peste ele, paleta casei: verde sticlă, alamă, hârtie crem.
+   Vezi `date/11-culori-si-fonturi.md`.
+
+   ------------------------------------------------------------
+   CELE ȘAPTE EFECTE
+   ------------------------------------------------------------
+     1 · antet transparent peste hero
+     2 · hero cu titlu în trepte + margine ruptă, fără JS
+     3 · textura de hârtie a paginii
+     4 · marchiza cu numele camerelor
+     5 · GRILA DE CERCURI — semnătura
+     6 · carduri de cameră cu colț drept și preț la hover
+     7 · titluri de secțiune la fontul de afiș
+   ============================================================ */
+
+/* ------------------------------------------------------------ 0 · antet */
+
+/* Antetul stă PESTE hero, nu deasupra lui: `main` e tras în sus cu exact
+   înălțimea antetului, plus firul de 1px al bordurii. Antetul rămâne
+   `sticky` (din base.css), deci se comportă normal la derulare. Copiat din
+   skin-ul Șablonului 5 (REGULI.md 2: se copiază, nu se rescrie). */
+.skin-irlandez main {
+  margin-top: calc(-1 * var(--header-h) - 1px);
+}
+
+.skin-irlandez .site-header {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.skin-irlandez .site-header:not(.is-scrolled) .logo-name,
+.skin-irlandez .site-header:not(.is-scrolled) .logo-tag,
+.skin-irlandez .site-header:not(.is-scrolled) .nav-links a,
+.skin-irlandez .site-header:not(.is-scrolled) .lang a {
+  color: var(--on-brand-strong);
+}
+.skin-irlandez .site-header:not(.is-scrolled) .logo-mark {
+  background: var(--on-brand-glass);
+  border: 1px solid var(--on-brand-border);
+}
+.skin-irlandez .site-header:not(.is-scrolled) .burger span {
+  background: var(--on-brand);
+}
+
+/* EXCEPȚIA: panoul de meniu de pe telefon are fundal OPAC, deci linkurile
+   lui trebuie să redevină întunecate cât e deschis — altfel se deschide
+   un meniu alb pe alb. */
+@media (max-width: 1024px) {
+  .skin-irlandez .site-header[data-meniu='deschis']:not(.is-scrolled) .nav-links a {
+    color: var(--ink);
+  }
+}
+
+.skin-irlandez .site-header.is-scrolled {
+  background: var(--glass-scrolled);
+  border-bottom-color: var(--line);
+}
+
+/* Numele casei în antet, la fontul de afiș. E singurul loc în care Anton
+   apare sub 24px — și merge, fiindcă e un singur cuvânt-două, spațiat. */
+.skin-irlandez .logo-name {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* --------------------------------------------------- 1 · hârtia paginii */
+
+/* Textura de hârtie: un `feTurbulence` inline, la opacitate foarte mică.
+   Sub 700 de octeți, nu e un fișier de descărcat, și rămâne la fel pe
+   orice densitate de ecran. `background-attachment: fixed` ar fi fost mai
+   frumos, dar pe iOS forțează repaint la fiecare derulare — nu merită.
+
+   `pointer-events: none` și `z-index` negativ: stratul e pur decorativ și
+   nu trebuie să prindă niciun click. */
+.skin-irlandez {
+  position: relative;
+  background: var(--canvas);
+}
+.skin-irlandez::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+}
+/* Conținutul trece peste stratul de textură. */
+.skin-irlandez > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------- 2 · titluri de afiș */
+
+/* Anton se folosește NUMAI în majuscule și NUMAI de la 24px în sus. Sub
+   atât e ilizibil — de asta `.card-body h3` și `.perk h3` de mai jos își
+   păstrează corpul, iar textul curent rămâne pe fontul de text.
+
+   `--display-tracking` vine din `date/11-culori-si-fonturi.md` și e
+   POZITIV aici (0.005em): Anton e strâns din desen, iar la 100px
+   majusculele se ating dacă îl mai strângi. */
+/* LINE-HEIGHT 1.04, NU `--lh-display` (0.95). Nu e o preferință de gust:
+   0.95 rupe diacriticele românești pe un titlu de două rânduri.
+
+   Anton are semnele diacritice (Ă, Î, Ș, Ț) desenate SUS, peste înălțimea
+   majusculei. Cu chenarul de rând mai mic decât corpul literei, căciula
+   lui „Î" de pe rândul al doilea urcă exact peste coada rândului de
+   deasupra și se pierde — „ÎN BĂILE FELIX" se citea „IN BĂILE FELIX".
+
+   Se vedea doar în română, doar la titlurile de două rânduri și doar la
+   majuscule, adică fix combinația de pe prima pagină.
+
+   1.04 e minimul la care Ă, Î, Ș și Ț respiră, și e tot îndeajuns de
+   strâns cât să arate a afiș. Dacă se schimbă vreodată fontul de titlu,
+   ăsta e primul număr de reverificat, cu șirul: ÎN BĂILE FELIX · ȘTRAND. */
+.skin-irlandez h1,
+.skin-irlandez h2 {
+  text-transform: uppercase;
+  line-height: 1.04;
+}
+
+.skin-irlandez h1 {
+  font-size: clamp(2.9rem, 1.6rem + 5.6vw, 7rem);
+}
+.skin-irlandez h2 {
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 3.6rem);
+}
+
+/* Eticheta de deasupra titlului — „ștampila": majuscule mici, spațiate
+   larg. E punctuația care ține tiparul de secțiune al referinței.
+
+   Rămâne pe fontul de TEXT, nu pe cel de afiș. Anton la 14px e ilizibil,
+   iar un al treilea font doar pentru eyebrow-uri ar fi costat încă 23 KB
+   din bugetul de 120 KB pe care îl măsoară `npm run verifica`. Abhaya
+   Libre, în majuscule și la 0.28em, face exact aceeași treabă. */
+.skin-irlandez .eyebrow {
+  letter-spacing: 0.28em;
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-sm);
+}
+
+/* Antetul de secțiune, centrat — tiparul zagazaga: etichetă, titlu mare,
+   text, un CTA. Se aplică numai la secțiunile de pe prima pagină, nu și
+   la paginile interioare, unde alinierea la stânga se citește mai bine
+   într-o listă. */
+.skin-irlandez main > section .sec-head,
+.skin-irlandez main > .oferte-antet .sec-head,
+.skin-irlandez main > .servicii-antet .sec-head {
+  margin-inline: auto;
+  text-align: center;
+}
+.skin-irlandez main > section .sec-head .lede {
+  margin-inline: auto;
+}
+
+/* --------------------------------------------------------------- 3 · hero */
+
+.skin-irlandez .hero-irlandez {
+  min-height: min(94vh, 900px);
+  text-align: center;
+  /* Loc pentru marginea ruptă, ca textul să nu intre sub ea. */
+  padding-bottom: clamp(48px, 6vw, 84px);
+}
+
+/* Fotografia e mai puțin voalată decât în restul motorului (0.66): cadrul
+   ales, terasa cu ciubărul, își pierde tot sensul dacă e stins. Voalul de
+   sub el compensează pentru lizibilitatea titlului. */
+.skin-irlandez .hero-irlandez .hero-media img {
+  opacity: 0.78;
+}
+
+/* `padding-block`, NU scurtătura `padding`.
+
+   Elementul e `<div class="wrap hero-inner hero-irlandez__text">`, iar `.wrap`
+   îi dă `padding-inline: var(--container-pad)` — marginile laterale ale
+   întregului site. O scurtătură `padding: 140px 0 40px` scrisă aici le pune pe
+   zero, fiindcă regula e mai jos în cascadă decât `.wrap`, la aceeași
+   specificitate.
+
+   Efectul se vedea cel mai urât pe telefon: titlul și subtitlul atingeau
+   marginile ecranului, fără niciun spațiu. Măsurat, nu bănuit —
+   `getBoundingClientRect().left` era 0 la 375px lățime.
+
+   ⚠ ACEEAȘI CAPCANĂ E ÎN MOTOR: `.hero-inner` din `styles/base.css` scrie tot
+   `padding: 120px 0 40px`, deci și celelalte cinci șabloane pierd marginile
+   laterale în prima secțiune. N-am atins base.css — e cod de motor, comun
+   tuturor clienților — dar merită reparat acolo, la o revizie de motor. */
+.skin-irlandez .hero-irlandez__text {
+  padding-block: 140px 40px;
+  padding-inline: var(--container-pad);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.skin-irlandez .hero-irlandez h1 {
+  max-width: 20ch;
+  margin-bottom: var(--sp-4);
+  /* Umbra e ce ține titlul lizibil peste o fotografie cu cer deschis.
+     Două straturi: unul strâns pentru contur, unul larg pentru masă. */
+  text-shadow:
+    0 1px 2px color-mix(in srgb, var(--brand) 45%, transparent),
+    0 12px 40px color-mix(in srgb, var(--brand) 55%, transparent);
+}
+
+.skin-irlandez .hero-irlandez__linie {
+  width: clamp(140px, 18vw, 240px);
+  height: auto;
+  color: var(--accent-lift);
+  margin-bottom: var(--sp-4);
+}
+
+.skin-irlandez .hero-irlandez__stampila {
+  color: var(--accent-lift);
+  margin-bottom: var(--sp-5);
+}
+
+.skin-irlandez .hero-irlandez .hero-sub {
+  max-width: 62ch;
+  margin-inline: auto;
+}
+
+.skin-irlandez .hero-irlandez .hero-badges {
+  justify-content: center;
+}
+
+/* Marginea ruptă de hârtie, la baza hero-ului. `currentColor` ia culoarea
+   fundalului paginii de pe element, deci dacă `--canvas` se schimbă în
+   `date/11-…`, ruptura se schimbă odată cu el — fără nimic de editat aici.
+
+   `bottom: -1px` acoperă firul de subpixel care apare pe unele
+   combinații de zoom și densitate de ecran. */
+.skin-irlandez .hero-irlandez__rupere {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  z-index: 1;
+  width: 100%;
+  height: clamp(24px, 3vw, 42px);
+  color: var(--canvas);
+  display: block;
+}
+
+/* Bara de disponibilitate urcă peste marginea ruptă, cum urcă și pe
+   Șablonul 5 peste marginea hero-ului. */
+.skin-irlandez .hero-booking-wrap {
+  margin-top: clamp(-72px, -6vw, -40px);
+  position: relative;
+  z-index: 2;
+}
+
+.skin-irlandez .booking {
+  border-radius: var(--r-xs);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-lg);
+}
+
+/* Intrarea în trepte a hero-ului. Stările „ascuns" trăiesc EXCLUSIV în
+   `from {}` (REGULI.md 12): fără JavaScript, elementele sunt vizibile de
+   la prima pictare, fiindcă nicio regulă statică nu le ascunde. */
+@keyframes irl-urca {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.skin-irlandez .hero-irlandez__text > * {
+  animation: irl-urca 900ms var(--ease-out-expo) backwards;
+}
+.skin-irlandez .hero-irlandez__text > *:nth-child(1) { animation-delay: 80ms; }
+.skin-irlandez .hero-irlandez__text > *:nth-child(2) { animation-delay: 220ms; }
+.skin-irlandez .hero-irlandez__text > *:nth-child(3) { animation-delay: 320ms; }
+.skin-irlandez .hero-irlandez__text > *:nth-child(4) { animation-delay: 420ms; }
+.skin-irlandez .hero-irlandez__text > *:nth-child(5) { animation-delay: 520ms; }
+
+/* ------------------------------------------------------- 4 · marchiza */
+
+.skin-irlandez .marchiza {
+  padding-block: clamp(20px, 2.4vw, 34px);
+  background: var(--brand);
+  color: var(--on-brand);
+  overflow: hidden;
+  /* Fără `border-block`: banda e o dungă continuă, ca o firmă de pub. */
+}
+
+.skin-irlandez .marchiza__sir {
+  display: flex;
+  width: max-content;
+  animation: irl-marchiza 46s linear infinite;
+}
+
+.skin-irlandez .marchiza__lista {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.skin-irlandez .marchiza__element {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+  padding-inline-end: clamp(20px, 3vw, 48px);
+  white-space: nowrap;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: clamp(1.3rem, 0.9rem + 1.6vw, 2.4rem);
+  color: var(--on-brand-strong);
+}
+
+.skin-irlandez .marchiza__separator {
+  color: var(--accent-lift);
+}
+
+/* −50% exact: a doua copie a listei ajunge fix unde era prima, deci
+   revenirea la 0 nu se vede. */
+@keyframes irl-marchiza {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ------------------------------------- 5 · GRILA DE CERCURI (semnătura) */
+
+/* Secțiunea rămâne pe brand (verde sticlă), cum o randează motorul. E
+   alegerea potrivită aici, nu doar cea comodă: cercurile conturate în crem
+   pe verde închis sunt exact limbajul unei firme de pub, iar banda
+   întunecată taie pagina de hârtie în două exact la mijloc.
+
+   Grila de 4 coloane a motorului (`.grid.g4`) rămâne pe desktop, dar
+   celulele devin rânduri „cerc + etichetă", nu carduri. */
+.skin-irlandez .facilitati {
+  /* Marginea ruptă de deasupra și de dedesubt, ca banda să nu fie un
+     dreptunghi lipit. Aceeași cale ca la hero, oglindită. */
+  position: relative;
+}
+
+.skin-irlandez .facilitati .grid {
+  gap: clamp(28px, 3.4vw, 52px) clamp(20px, 2.4vw, 40px);
+}
+
+/* Cardul devine un rând: cercul la stânga, textul la dreapta. Fără fundal,
+   fără chenar, fără umbră — tot ce desena „card" dispare.
+
+   CERCUL ȚINE AMÂNDOUĂ RÂNDURILE (`grid-row: 1 / -1`), iar titlul și textul
+   stau explicit în coloana a doua. Fără asta, plasarea automată a grilei
+   punea titlul lângă cerc, dar paragraful pe rândul următor, ÎN COLOANA
+   CERCULUI — textul ajungea sub iconiță, iar coloana „auto" se lățea la
+   lățimea paragrafului și strivea titlul în restul de loc: „Grătar și
+   cuptor cu lemne" cădea pe patru rânduri, cu iconița singură lângă el.
+   Măsurat în browser: cerc 72px, dar coloana 1 la 156px și titlul la 102px. */
+.skin-irlandez .perk {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  gap: var(--sp-2) var(--sp-4);
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.skin-irlandez .perk:hover {
+  background: none;
+  border-color: transparent;
+}
+
+/* CERCUL. Contur subțire, gol în interior, iconița în mijloc. Diametrul
+   crește cu ecranul, dar rămâne perfect rotund: `aspect-ratio: 1` plus
+   lățime fixă, nu padding procentual. */
+.skin-irlandez .perk-icon {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  width: clamp(58px, 5.6vw, 76px);
+  height: clamp(58px, 5.6vw, 76px);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: none;
+  border: 1.5px solid var(--on-brand-border);
+  color: var(--accent-lift);
+  transition: border-color var(--tr-base), transform var(--tr-base);
+}
+.skin-irlandez .perk-icon svg {
+  width: 46%;
+  height: 46%;
+}
+
+/* Hover pe rândul întreg, nu doar pe cerc: ținta e mai mare și mai ușor
+   de nimerit. Se mișcă doar `transform` și `border-color`. */
+.skin-irlandez .perk:hover .perk-icon {
+  border-color: var(--accent-lift);
+  transform: translateY(-3px);
+}
+
+.skin-irlandez .perk h3 {
+  grid-column: 2;
+  grid-row: 1;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+  margin-bottom: 0;
+  text-wrap: balance;
+}
+
+.skin-irlandez .perk p {
+  grid-column: 2;
+  grid-row: 2;
+  color: var(--on-brand-dim);
+  max-width: 34ch;
+}
+
+/* Pe telefon, grila de 4 coloane a motorului devine una singură; cercurile
+   se micșorează, ca eticheta să aibă loc lângă ele. */
+@media (max-width: 700px) {
+  .skin-irlandez .perk-icon {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* --------------------------------------------- 6 · carduri și secțiuni */
+
+/* `--radius` e 4px din `date/11-…`, deci cardurile sunt deja aproape
+   drepte. Aici se scoate și umbra: la un site de hârtie, elevația se
+   citește prin chenar, nu prin umbră difuză. */
+.skin-irlandez .card {
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+.skin-irlandez .card:hover {
+  box-shadow: var(--sh-md);
+}
+
+.skin-irlandez .card-body h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--fs-lg);
+}
+
+/* Prețul, la fontul de afiș — e cifra pentru care omul a coborât până
+   aici, deci merită corpul cel mai mare din card. */
+.skin-irlandez .price b {
+  font-family: var(--font-display);
+}
+
+/* Banda de încredere: cifrele mari, la fontul de afiș. Fundalul e cel
+   alternant (`--surface-alt`), care pe paleta asta e crem închis — se
+   citește ca o fâșie de hârtie mai groasă. */
+.skin-irlandez .trust-item b {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 1.3rem + 2.2vw, 3.2rem);
+  letter-spacing: 0.01em;
+}
+.skin-irlandez .trust-item span {
+  font-size: var(--fs-sm);
+}
+
+/* Butoanele: colț aproape drept, majuscule spațiate, fără umbră. */
+.skin-irlandez .btn {
+  border-radius: var(--r-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: var(--fs-xs);
+}
+
+/* Citatele din recenzii rămân pe fontul de TEXT, nu pe cel de afiș:
+   sunt cuvintele altcuiva, iar majusculele le-ar transforma în sloganuri. */
+.skin-irlandez .review blockquote {
+  font-family: var(--font-body);
+  text-transform: none;
+}
+
+/* ------------------------------------------------------ 7 · reduced motion */
+
+/* Tot ce mișcă se oprește. Marchiza rămâne o listă statică, centrată și
+   ruptă pe rânduri — lizibilă, nu tăiată la marginea ecranului. */
+@media (prefers-reduced-motion: reduce) {
+  .skin-irlandez .hero-irlandez__text > * {
+    animation: none;
+  }
+
+  .skin-irlandez .marchiza__sir {
+    animation: none;
+    width: 100%;
+  }
+  .skin-irlandez .marchiza__lista {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  /* A doua copie e doar pentru buclă; oprită, ar dubla lista pe ecran. */
+  .skin-irlandez .marchiza__lista[aria-hidden='true'] {
+    display: none;
+  }
+
+  .skin-irlandez .perk:hover .perk-icon {
+    transform: none;
+  }
+}

@@ -1,0 +1,718 @@
+/* ============================================================
+   admin.css — stilurile panoului de administrare.
+
+   Parte din panoul de administrare, o modificare locală față de
+   motorul-sursă. Vezi `MOTOR-MODIFICAT.md`.
+
+   SEPARAT DE STILURILE SITE-ULUI, DINADINS
+   ----------------------------------------
+   Panoul nu moștenește tema site-ului. Două motive:
+
+   1. Culorile site-ului se editează DIN panou. Dacă panoul le-ar folosi,
+      o culoare pusă greșit ar face panoul ilizibil — exact în momentul în
+      care gazda are nevoie de el ca s-o repare.
+   2. Panoul e o unealtă, nu o pagină de prezentare. Are nevoie de ținte
+      mari de atins, contrast mare și zero animație.
+
+   TOTUL E MARE, INTENȚIONAT
+   -------------------------
+   Butoane de minimum 48px, text de 17px, câmpuri înalte. Panoul se
+   folosește des de pe telefon, cu o mână, la recepție.
+   ============================================================ */
+
+/* Paleta panoului.
+
+   Culorile sunt scrise direct, NU luate din `styles/tokens.css` — singura
+   excepție acceptată de regula 4, și e intenționată. Tokenii site-ului se
+   editează CHIAR DIN PANOU (`date/11-culori-si-fonturi.md`). Dacă panoul
+   i-ar folosi, o culoare pusă greșit l-ar face ilizibil exact în clipa în
+   care e nevoie de el ca s-o repare. Deci panoul își ține propria paletă,
+   fixă, cu contrast verificat, pe care nimeni nu o poate strica din
+   greșeală.
+
+   De aici `allow-hardcoded-color` pe fiecare rând de mai jos. */
+:root {
+  --p-fundal: #f6f5f2; /* allow-hardcoded-color */
+  --p-card: #ffffff; /* allow-hardcoded-color */
+  --p-text: #1b1b1a; /* allow-hardcoded-color */
+  --p-text-slab: #5c5b57; /* allow-hardcoded-color */
+  --p-linie: #dedcd6; /* allow-hardcoded-color */
+  --p-accent: #2f5d4a; /* allow-hardcoded-color */
+  --p-accent-text: #ffffff; /* allow-hardcoded-color */
+  --p-accent-slab: #e8efeb; /* allow-hardcoded-color */
+  --p-atentie: #8a4b12; /* allow-hardcoded-color */
+  --p-atentie-fundal: #fdf3e7; /* allow-hardcoded-color */
+  --p-eroare: #97231d; /* allow-hardcoded-color */
+  --p-eroare-fundal: #fdeceb; /* allow-hardcoded-color */
+  --p-bine: #1f6b3e; /* allow-hardcoded-color */
+  --p-bine-fundal: #e9f5ee; /* allow-hardcoded-color */
+  --p-raza: 10px;
+  --p-umbra: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.04); /* allow-hardcoded-color */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.panou {
+  margin: 0;
+  background: var(--p-fundal);
+  color: var(--p-text);
+  font: 17px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---------- Structură ---------- */
+
+.p-antet {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--p-card);
+  border-bottom: 1px solid var(--p-linie);
+}
+
+.p-antet h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.p-antet .p-spatiu {
+  flex: 1;
+}
+
+.p-corp {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 20px 16px 96px;
+}
+
+.p-inapoi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--p-text-slab);
+  text-decoration: none;
+  font-size: 15px;
+  padding: 8px 0;
+}
+
+.p-inapoi:hover {
+  color: var(--p-text);
+}
+
+/* ---------- Dalele de pe acasă ---------- */
+
+.p-dale {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.p-dala {
+  display: block;
+  padding: 20px;
+  background: var(--p-card);
+  border: 1px solid var(--p-linie);
+  border-radius: var(--p-raza);
+  box-shadow: var(--p-umbra);
+  text-decoration: none;
+  color: inherit;
+}
+
+.p-dala:hover {
+  border-color: var(--p-accent);
+}
+
+.p-dala h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.p-dala p {
+  margin: 0;
+  color: var(--p-text-slab);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.p-dala .icon {
+  width: 26px;
+  height: 26px;
+  color: var(--p-accent);
+  margin-bottom: 10px;
+}
+
+/* ---------- Carduri și câmpuri ---------- */
+
+.p-card {
+  background: var(--p-card);
+  border: 1px solid var(--p-linie);
+  border-radius: var(--p-raza);
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--p-umbra);
+}
+
+.p-card > h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.p-card > .p-ajutor-bloc {
+  margin: 0 0 16px;
+  color: var(--p-text-slab);
+  font-size: 15px;
+}
+
+.p-camp {
+  margin-bottom: 16px;
+}
+
+.p-camp:last-child {
+  margin-bottom: 0;
+}
+
+.p-camp > label {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.p-ajutor {
+  margin: 5px 0 0;
+  color: var(--p-text-slab);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+input[type='text'],
+input[type='password'],
+input[type='number'],
+textarea,
+select {
+  width: 100%;
+  padding: 11px 12px;
+  font: inherit;
+  color: inherit;
+  background: var(--p-card);
+  border: 1px solid var(--p-linie);
+  border-radius: 8px;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--p-accent);
+  outline-offset: 2px;
+}
+
+.p-numar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.p-numar input {
+  max-width: 140px;
+}
+
+.p-sufix {
+  color: var(--p-text-slab);
+  font-size: 15px;
+}
+
+/* ---------- Butoane ---------- */
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.p-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid var(--p-accent);
+  border-radius: 8px;
+  background: var(--p-accent);
+  color: var(--p-accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.p-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.p-btn--gol {
+  background: var(--p-card);
+  color: var(--p-text);
+  border-color: var(--p-linie);
+}
+
+.p-btn--mic {
+  min-height: 38px;
+  padding: 7px 12px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.p-btn--pericol {
+  background: var(--p-card);
+  color: var(--p-eroare);
+  border-color: var(--p-eroare);
+}
+
+/* ---------- Bara de salvare, lipită jos ---------- */
+
+.p-salvare {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--p-card);
+  border-top: 1px solid var(--p-linie);
+  box-shadow: 0 -2px 12px rgb(0 0 0 / 0.06); /* allow-hardcoded-color */
+}
+
+.p-salvare .p-stare {
+  flex: 1;
+  font-size: 15px;
+  color: var(--p-text-slab);
+}
+
+/* ---------- Mesaje ---------- */
+
+.p-mesaj {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.p-mesaj--eroare {
+  background: var(--p-eroare-fundal);
+  color: var(--p-eroare);
+}
+
+.p-mesaj--atentie {
+  background: var(--p-atentie-fundal);
+  color: var(--p-atentie);
+}
+
+.p-mesaj--bine {
+  background: var(--p-bine-fundal);
+  color: var(--p-bine);
+}
+
+/* ---------- Listă de elemente ---------- */
+
+.p-element {
+  background: var(--p-card);
+  border: 1px solid var(--p-linie);
+  border-radius: var(--p-raza);
+  margin-bottom: 12px;
+  box-shadow: var(--p-umbra);
+  overflow: hidden;
+}
+
+.p-element-cap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+
+.p-element-cap h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.p-element-corp {
+  padding: 0 16px 18px;
+  border-top: 1px solid var(--p-linie);
+  padding-top: 16px;
+}
+
+.p-element-unelte {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--p-linie);
+}
+
+.p-chevron {
+  width: 20px;
+  height: 20px;
+  color: var(--p-text-slab);
+  flex: none;
+  transition: transform 0.15s;
+}
+
+.p-element[data-deschis='da'] .p-chevron {
+  transform: rotate(90deg);
+}
+
+/* ---------- Poze ---------- */
+
+.p-poze-grila {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.p-poza {
+  position: relative;
+  border: 2px solid var(--p-linie);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--p-fundal);
+  padding: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.p-poza[data-aleasa='da'] {
+  border-color: var(--p-accent);
+}
+
+.p-poza img,
+.p-poza video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.p-poza-nume {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  background: rgb(0 0 0 / 0.62); /* allow-hardcoded-color */
+  color: #fff; /* allow-hardcoded-color */
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: left;
+  word-break: break-all;
+}
+
+.p-poza-ordine {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--p-accent);
+  color: var(--p-accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.p-alese {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.p-aleasa {
+  position: relative;
+  width: 104px;
+}
+
+.p-aleasa img,
+.p-aleasa video {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--p-linie);
+  display: block;
+}
+
+.p-aleasa-unelte {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.p-aleasa-unelte button {
+  flex: 1;
+  min-height: 30px;
+  padding: 2px;
+  font-size: 13px;
+  border: 1px solid var(--p-linie);
+  border-radius: 6px;
+  background: var(--p-card);
+  color: var(--p-text);
+}
+
+.p-gol {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  width: 104px;
+  border: 1px dashed var(--p-linie);
+  border-radius: 8px;
+  color: var(--p-text-slab);
+  font-size: 14px;
+  background: var(--p-card);
+}
+
+/* ---------- Etichete și iconuri ---------- */
+
+.p-etichete {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.p-eticheta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  background: var(--p-accent-slab);
+  border-radius: 999px;
+  font-size: 15px;
+}
+
+.p-eticheta button {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 11px;
+  background: rgb(0 0 0 / 0.08); /* allow-hardcoded-color */
+  color: inherit;
+  line-height: 1;
+  font-size: 15px;
+}
+
+.p-iconuri {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.p-icon-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border: 2px solid var(--p-linie);
+  border-radius: 8px;
+  background: var(--p-card);
+  color: var(--p-text-slab);
+  font-size: 12px;
+}
+
+.p-icon-opt[data-aleasa='da'] {
+  border-color: var(--p-accent);
+  color: var(--p-accent);
+  background: var(--p-accent-slab);
+}
+
+.p-icon-opt .icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------- Comutatoare ---------- */
+
+.p-comutator {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--p-linie);
+}
+
+.p-comutator:last-child {
+  border-bottom: 0;
+}
+
+.p-comutator input {
+  width: 24px;
+  height: 24px;
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: var(--p-accent);
+}
+
+.p-comutator .p-comutator-text {
+  flex: 1;
+}
+
+.p-comutator strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------- Ordinea secțiunilor ---------- */
+
+.p-ordine {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.p-ordine li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--p-linie);
+}
+
+.p-ordine li:last-child {
+  border-bottom: 0;
+}
+
+.p-ordine .p-nume {
+  flex: 1;
+  font-size: 16px;
+}
+
+.p-ordine button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--p-linie);
+  border-radius: 8px;
+  background: var(--p-card);
+  color: var(--p-text);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.p-ordine button:disabled {
+  opacity: 0.35;
+}
+
+/* ---------- Ecranul de parolă ---------- */
+
+.p-intrare {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.p-intrare form {
+  width: 100%;
+  max-width: 380px;
+  background: var(--p-card);
+  border: 1px solid var(--p-linie);
+  border-radius: var(--p-raza);
+  padding: 28px;
+  box-shadow: var(--p-umbra);
+}
+
+.p-intrare h1 {
+  margin: 0 0 4px;
+  font-size: 21px;
+}
+
+.p-intrare .p-sub {
+  margin: 0 0 22px;
+  color: var(--p-text-slab);
+  font-size: 15px;
+}
+
+.p-intrare .p-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* ---------- Diverse ---------- */
+
+.p-unde {
+  margin: 4px 0 20px;
+  color: var(--p-text-slab);
+  font-size: 15px;
+}
+
+.p-titlu-pagina {
+  margin: 8px 0 2px;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.p-limba {
+  display: inline-flex;
+  border: 1px solid var(--p-linie);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.p-limba button {
+  min-height: 42px;
+  padding: 8px 18px;
+  border: 0;
+  background: var(--p-card);
+  color: var(--p-text-slab);
+  font-weight: 600;
+}
+
+.p-limba button[data-activ='da'] {
+  background: var(--p-accent);
+  color: var(--p-accent-text);
+}
+
+.p-incarcare {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--p-text-slab);
+}
+
+/* Nicio animație pentru cine a cerut mai puțină mișcare. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

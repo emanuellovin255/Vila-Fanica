@@ -1,0 +1,236 @@
+/* ============================================================
+   tokens.css — vocabularul vizual unic al sistemului.
+
+   Sursă: Web Tamplate/_core/css/tokens.css (209 linii), adaptat pe
+   numele semantice din content/types.ts (`Palette`).
+
+   REGULI.md 4: nicio culoare nu are voie să existe în afara acestui
+   fișier. `base.css`, `motion.css`, `depth.css` și `icons.css` nu
+   conțin niciun `#hex`, niciun `rgb()`, niciun `hsl()`.
+
+   ARHITECTURA ÎN DOUĂ STRATURI
+   ----------------------------
+   Acesta e stratul de BAZĂ, identic pentru toate site-urile. Un client
+   încarcă după el propriul `tokens.client.css`, generat din
+   `date/11-culori-si-fonturi.md`, care suprascrie DOAR variabilele
+   marcate [CLIENT] mai jos — 14 culori + 2 fonturi + radius + tracking.
+
+   Restul (scala tipografică, spacing-ul de 4px, easing, z-index) nu se
+   atinge niciodată, la niciun client.
+
+   Tot ce se poate deriva se derivă cu `color-mix()`. Un skin nu
+   recalculează NICIODATĂ o valoare cu alfa — altfel un client cu 14
+   culori devine un client cu 60. Asta e singura regulă din fișierul
+   ăsta care chiar contează.
+
+   Culorile implicite de mai jos nu sunt „paleta sistemului": sunt o
+   temă neutră, verificată la contrast, ca motorul să fie lizibil
+   înainte să existe un client. Culorile reale ale unui client se
+   MĂSOARĂ din logo-ul lui cu `npm run analiza`, nu se aleg la ochi.
+   ============================================================ */
+
+:root {
+  /* ---------- [CLIENT 1-7] Rampa de fundal și text ----------
+     Numele vin din `Palette` în content/types.ts și nu se schimbă.
+     Contrast verificat pe --canvas:
+       ink 16,2:1 · ink-soft 8,5:1 · muted 4,9:1 — toate peste 4,5:1. */
+  --canvas:      #FCFBF9;   /* fundalul paginii */
+  --surface:     #FFFFFF;   /* carduri, suprafețe ridicate */
+  --surface-alt: #F4F1EC;   /* benzi adâncite, secțiuni alternante */
+  --line:        #E3DED5;   /* fire de păr și chenare */
+  --ink:         #17201C;   /* textul principal */
+  --ink-soft:    #414D47;   /* text secundar */
+  --muted:       #64706B;   /* text terțiar, etichete, legende */
+
+  /* ---------- [CLIENT 8-11] Rampa de brand ----------
+     --brand e culoarea dominantă: antet, secțiuni închise, buton
+     principal, subsol. --on-brand e singura valoare de decis (alb sau
+     negru, după care dă contrast mai bun); restul se derivă din ea. */
+  --brand:      #1F3D33;
+  --brand-lift: #2C5648;   /* hover */
+  --on-brand:   #FFFFFF;
+
+  /* ---------- [CLIENT 12-14] Accentul și semnalele ----------
+     Accentul se folosește cu zgârcenie: eyebrow, preț, un singur CTA.
+     --accent trebuie să fie lizibil ca TEXT pe --canvas (≥ 4,5:1),
+     nu doar frumos ca fundal de buton. --accent-lift e treapta
+     deschisă, pentru fundaluri închise. */
+  --accent:      #8A5A22;
+  --accent-lift: #C79B5C;
+  --on-accent:   #FFFFFF;
+
+  --positive:  #2E7D5B;   /* confirmare, „inclus în tarif" */
+  --attention: #B03A2E;   /* raritate reală, anunțuri cu termen */
+
+  /* ---------- Derivate: pe brand ----------
+     Un skin nu le atinge. Înlocuiesc toate `rgb(255 255 255 / 0.x)`
+     din globals.css, care presupuneau că --on-brand e alb. */
+  /* Valorile de TEXT pe fundal brand se mixează peste `--brand`, nu peste
+     `transparent`: rezultatul e identic vizual (textul stă mereu pe brand),
+     dar rămâne o culoare OPACĂ. Un color(srgb …/alpha) semi-transparent e
+     calculat greșit de axe-core (motorul de contrast din Lighthouse) și
+     produce eșecuri false de contrast — culoarea opacă îl lasă să vadă
+     lizibilitatea reală. Bordurile/glass rămân translucente mai jos. */
+  --on-brand-strong: color-mix(in srgb, var(--on-brand) 88%, var(--brand));
+  --on-brand-soft:   color-mix(in srgb, var(--on-brand) 78%, var(--brand));
+  --on-brand-dim:    color-mix(in srgb, var(--on-brand) 70%, var(--brand));
+  --on-brand-line:   color-mix(in srgb, var(--on-brand) 13%, transparent);
+  --on-brand-border: color-mix(in srgb, var(--on-brand) 24%, transparent);
+  --on-brand-ghost:  color-mix(in srgb, var(--on-brand) 32%, transparent);
+  --on-brand-wash:   color-mix(in srgb, var(--on-brand)  6%, transparent);
+  --on-brand-wash-2: color-mix(in srgb, var(--on-brand) 10%, transparent);
+  --on-brand-glass:  color-mix(in srgb, var(--on-brand) 14%, transparent);
+  --on-brand-ring:   color-mix(in srgb, var(--on-brand) 16%, transparent);
+  --on-brand-ring-0: color-mix(in srgb, var(--on-brand)  0%, transparent);
+
+  /* ---------- Derivate: accent ---------- */
+  --accent-tint:      color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-glow:      color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-lift-tint: color-mix(in srgb, var(--accent-lift) 14%, transparent);
+  --accent-lift-edge: color-mix(in srgb, var(--accent-lift) 34%, transparent);
+  --accent-lift-icon: color-mix(in srgb, var(--accent-lift) 22%, transparent);
+  --attention-tint:   color-mix(in srgb, var(--attention) 16%, transparent);
+
+  /* ---------- Suprafețe translucide ----------
+     Antetul, bara mobilă și cardul de disponibilitate stau peste
+     conținut cu backdrop-filter. Se derivă din --canvas, ca o temă
+     închisă să nu ajungă cu bare albe peste un site întunecat. */
+  --glass-header:   color-mix(in srgb, var(--canvas) 92%, transparent);
+  --glass-scrolled: color-mix(in srgb, var(--canvas) 97%, transparent);
+  --glass-bar:      color-mix(in srgb, var(--canvas) 97%, transparent);
+  --glass-ribbon:   color-mix(in srgb, var(--canvas) 94%, transparent);
+
+  /* ---------- Voalul din hero ----------
+     Trei opriri de --brand peste poză: sus ca să se citească antetul,
+     mijloc transparent ca să se vadă poza, jos dens ca să se citească
+     titlul. Se derivă din brand, deci un client verde nu primește un
+     voal albastru. */
+  --hero-veil-top: color-mix(in srgb, var(--brand) 55%, transparent);
+  --hero-veil-mid: color-mix(in srgb, var(--brand) 12%, transparent);
+  --hero-veil-bot: color-mix(in srgb, var(--brand) 86%, transparent);
+
+  /* ---------- Umbre ----------
+     Definite o dată, cu o singură culoare de bază derivată din --ink.
+     Pe o temă închisă, --shadow-base devine practic negru și umbrele
+     dispar de la sine — atunci elevația se citește prin chenar. */
+  --shadow-base: color-mix(in srgb, var(--ink) 70%, transparent);
+  --sh-hairline: 0 1px 2px color-mix(in srgb, var(--shadow-base) 6%, transparent);
+  --sh-sm:  0 1px 2px  color-mix(in srgb, var(--shadow-base) 7%, transparent);
+  --sh-md:  0 8px 24px color-mix(in srgb, var(--shadow-base) 9%, transparent);
+  --sh-lg:  0 20px 48px color-mix(in srgb, var(--shadow-base) 17%, transparent);
+  --sh-xl:  0 24px 60px color-mix(in srgb, var(--shadow-base) 30%, transparent);
+  --sh-up:  0 -6px 22px color-mix(in srgb, var(--shadow-base) 13%, transparent);
+  --sh-header: 0 4px 20px color-mix(in srgb, var(--shadow-base) 9%, transparent);
+  --glow:      0 0 0 1px var(--accent-tint), 0 8px 32px var(--accent-glow);
+
+  /* ---------- Lumini în mișcare (motion.css) ----------
+     Luciul care traversează un CTA. Se derivă din --on-brand, ca pe o
+     temă deschisă să nu fie un luciu alb pe un buton alb. */
+  --sheen:      color-mix(in srgb, var(--on-brand) 30%, transparent);
+  --shimmer:    color-mix(in srgb, var(--on-brand) 40%, transparent);
+  --edge-light: color-mix(in srgb, var(--on-brand)  7%, transparent);
+
+  /* ---------- WhatsApp ----------
+     Verdele WhatsApp e al mărcii WhatsApp, nu al clientului. Nu se
+     schimbă niciodată într-un skin. La o cabană, WhatsApp e un canal
+     real de rezervare, de asta există aici. */
+  --wa-green:    #25D366;   /* allow-hardcoded-color — culoare de marcă */
+  --wa-green-dk: #1EBE5A;   /* allow-hardcoded-color — culoare de marcă */
+  --wa-ring:     color-mix(in srgb, var(--wa-green) 42%, transparent);
+  --wa-ring-0:   color-mix(in srgb, var(--wa-green)  0%, transparent);
+
+  /* ---------- [CLIENT] Tipografie ----------
+     Perechea display+body se alege din caracterul brandului
+     (`Theme.character`) de scripts/lib/fonts.ts, T03. */
+  --font-display: 'Satoshi', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* [CLIENT] Corecție optică: unele fonturi display au nevoie de
+     tracking mai strâns la corp mare. Vine din `Theme.displayTracking`. */
+  --display-tracking: -0.02em;
+
+  /* scală fluidă cu clamp(min, preferat, max) */
+  --fs-xs:   clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
+  --fs-sm:   clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem);
+  --fs-base: clamp(1rem, 0.97rem + 0.2vw, 1.0625rem);
+  --fs-lg:   clamp(1.125rem, 1.08rem + 0.3vw, 1.25rem);
+  --fs-xl:   clamp(1.375rem, 1.28rem + 0.5vw, 1.625rem);
+  --fs-2xl:  clamp(1.625rem, 1.45rem + 0.9vw, 2.125rem);
+  --fs-3xl:  clamp(1.95rem, 1.7rem + 1.5vw, 3rem);
+  --fs-4xl:  clamp(2.5rem, 1.85rem + 2.4vw, 4.4rem);
+
+  --lh-tight:   1.1;
+  --lh-snug:    1.3;
+  --lh-normal:  1.65;
+  --lh-display: 0.95;
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  --tracking-title: -0.02em;
+  --tracking-label: 0.15em;   /* eyebrow-uri, etichete de câmp */
+
+  /* ---------- Spacing (scală 4px) ---------- */
+  --sp-1:  0.25rem;
+  --sp-2:  0.5rem;
+  --sp-3:  0.75rem;
+  --sp-4:  1rem;
+  --sp-5:  1.25rem;
+  --sp-6:  1.5rem;
+  --sp-8:  2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --sp-20: 5rem;
+  --sp-24: 6rem;
+
+  /* ---------- Layout ---------- */
+  --container-max: 1240px;
+  --container-pad: clamp(1rem, 5vw, 1.5rem);
+  --header-h: 74px;
+  --section-pad: clamp(64px, 8vw, 108px);
+
+  /* ---------- [CLIENT] Radius ----------
+     Vine din `Theme.radius`. Un brand cu geometrie dură primește `0px`
+     și tot sistemul se aplatizează, inclusiv iconurile și chip-urile,
+     pentru că toate sunt calculate din --radius. */
+  --radius: 14px;
+  --r-xs:   calc(var(--radius) * 0.45);
+  --r-sm:   calc(var(--radius) * 0.6);
+  --r-md:   var(--radius);
+  --r-lg:   calc(var(--radius) * 1.4);
+  --r-full: 999px;
+
+  /* ---------- Tranziții ---------- */
+  --tr-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --tr-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --tr-slow: 420ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------- Mișcare (motion.css) ---------- */
+  --stagger: 60ms;   /* pas între copiii unei grile la reveal */
+  --lift: -4px;      /* ridicarea unui card la hover */
+
+  /* ---------- Profunzime 3D (depth.css, depth.ts) ----------
+     Perspectiva e mai scurtă pe telefon: ecranul e mic, deci unghiul
+     trebuie să fie mai agresiv ca efectul să se vadă. */
+  --persp: 1200px;
+  --persp-near: 900px;
+  --tilt-max: 8deg;   /* peste atât arată ca un truc, nu ca adâncime */
+
+  /* ---------- Z-index ---------- */
+  --z-behind:  -1;
+  --z-header:  60;
+  --z-sticky:  70;
+  --z-overlay: 80;
+  --z-modal:   100;
+
+  /* ---------- Focus ---------- */
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 3px;
+}

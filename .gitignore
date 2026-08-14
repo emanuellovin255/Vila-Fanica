@@ -1,0 +1,29 @@
+# dependențe
+node_modules/
+
+# build
+.next/
+tsconfig.tsbuildinfo
+public/media/
+content/site.json
+content/audit.json
+content/poze.json
+styles/tokens.client.css
+
+# macOS
+.DS_Store
+
+# secrete — niciodată în repo
+.env
+.env.local
+.env.*.local
+
+# `Poze Camere/` RĂMÂNE URMĂRIT, intenționat.
+#
+# Sunt cele 11 fotografii originale (414×414, ~380 KB în total) primite de la
+# client, plus `pregateste.mjs`, scriptul care le mărește și le duce în `poze/`.
+# Cu ele în repo, transformarea e reproductibilă: oricine poate reface pozele
+# de pe site, sau le poate reface altfel când vin originalele mari.
+#
+# 380 KB nu apasă istoricul. Dacă vreodată ajung sute de fotografii aici,
+# atunci se adaugă în lista de mai sus.

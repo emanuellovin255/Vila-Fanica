@@ -1,0 +1,1889 @@
+/* ============================================================
+   base.css — design system-ul.
+
+   Sursă: Fiald/hotel-forge/app/globals.css (697 linii), portat.
+
+   Ce s-a schimbat față de sursă, și de ce:
+
+   1. SURSA CULORILOR. În `hotel-forge`, culorile veneau din
+      `<html style="…">` scris de `ingest.ts`. Aici vin din
+      `tokens.css`, iar clientul le suprascrie din
+      `date/11-culori-si-fonturi.md`. Numele semantice sunt aceleași.
+
+   2. ZERO CULORI HARDCODATE. Sursa avea ~40 de albi hex și de albi și
+      negri cu alfa, scriși direct. Toate presupuneau
+      tacit că textul pe brand e alb și că umbra e neagră — adevărat pe
+      o temă deschisă, fals pe una închisă. Fiecare a devenit un token
+      derivat cu `color-mix()` din `--on-brand` sau `--ink`.
+      Verificare: `grep -nE '#[0-9a-fA-F]{3,6}|rgb\(|hsl\(' base.css`
+      trebuie să dea gol.
+
+   3. FAQ NATIV. Sursa deschidea FAQ-ul cu `[data-open]` pus din
+      JavaScript. Aici funcționează pe `<details>`/`<summary>`, deci și
+      fără JS (REGULI.md 12). Selectorii `[data-open]` rămân pentru
+      șabloanele care vor o animație proprie.
+
+   4. `@import './fonts.css'` scos. Ordinea de încărcare e explicită în
+      `app/layout.tsx`: tokens → fonts → base → icons → motion → depth.
+      Un `@import` în capul unui CSS blochează randarea până se rezolvă.
+
+   Secțiuni: reset, typography, layout, buttons, header, hero, booking,
+   trust strip, perks, rooms, feature, events, reviews, faq, footer,
+   sticky mobil, chrome de propunere, responsive, reduced-motion.
+   ============================================================ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+* { margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img, svg, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 3px;
+}
+
+/* Sări la conținut — primul element focusabil din pagină. */
+.skip {
+  position: absolute;
+  inset-inline-start: -9999px;
+  top: var(--sp-2);
+  z-index: var(--z-modal);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--sp-3) var(--sp-4);
+}
+.skip:focus { inset-inline-start: var(--sp-2); }
+
+/* Vizibil doar pentru cititoarele de ecran. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ typography */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--display-tracking);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--fs-4xl); }
+h2 { font-size: var(--fs-3xl); }
+h3 { font-size: var(--fs-xl); }
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.lede {
+  font-size: var(--fs-lg);
+  color: var(--muted);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+/* Cifrele aliniate în coloană: prețuri, capacități, note. */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------------- layout */
+
+.wrap {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-pad);
+}
+
+section { padding-block: var(--section-pad); }
+/* Ancorele nu ajung sub antetul lipit. */
+section[id], footer[id] { scroll-margin-top: calc(var(--header-h) + var(--sp-6)); }
+
+.grid { display: grid; gap: 26px; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+
+.sec-head { max-width: 64ch; margin-bottom: 46px; }
+.sec-head.center { margin-inline: auto; text-align: center; }
+.sec-head.center .lede { margin-inline: auto; }
+
+.stack { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+
+/* --------------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  padding: 14px 26px;
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  /* REGULI.md 11: se animează doar transform și opacity. Culoarea de
+     fundal e o tranziție de vopsea, nu de layout — nu declanșează
+     reflow și rămâne acceptabilă la hover, unde nu e în calea LCP. */
+  transition: background-color var(--tr-base), color var(--tr-base),
+              border-color var(--tr-base), transform var(--tr-base);
+}
+.btn-primary { background: var(--brand); color: var(--on-brand); }
+.btn-primary:hover { background: var(--brand-lift); }
+
+.btn-accent { background: var(--accent); color: var(--on-accent); }
+.btn-accent:hover { background: var(--accent-lift); }
+
+.btn-ghost { border-color: var(--line); color: var(--ink); }
+.btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
+
+/* Pe fundal închis sau peste o poză: sticlă, nu o culoare plină. */
+.btn-light {
+  background: var(--on-brand-glass);
+  color: var(--on-brand);
+  border-color: var(--on-brand-border);
+  backdrop-filter: blur(8px);
+}
+.btn-light:hover { background: var(--on-brand-ghost); }
+
+.btn-wa { background: var(--wa-green); color: var(--on-accent); }
+.btn-wa:hover { background: var(--wa-green-dk); }
+
+.btn-sm { padding: 10px 20px; font-size: var(--fs-xs); }
+.btn[aria-disabled='true'] { opacity: 0.55; pointer-events: none; }
+
+/* ---------------------------------------------------------------------- header */
+
+.topbar {
+  background: var(--brand);
+  color: var(--on-brand-soft);
+  font-size: var(--fs-xs);
+}
+.topbar .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  min-height: 38px;
+}
+.topbar a:hover { color: var(--on-brand); }
+.topbar-l, .topbar-r { display: flex; align-items: center; gap: var(--sp-5); }
+.topbar-item { display: inline-flex; align-items: center; gap: 7px; }
+
+.lang { display: flex; gap: 2px; }
+.lang a { padding: 3px 8px; border-radius: 5px; font-weight: var(--fw-semibold); }
+/* Pila limbii active stă în antetul deschis (glass pe canvas), nu pe brand:
+   un fundal translucid-alb cu text alb ar fi invizibil. Pilă solidă brand cu
+   text alb — lizibilă pe orice antet. */
+.lang a[aria-current='true'] { background: var(--brand); color: var(--on-brand); }
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--glass-header);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  transition: box-shadow var(--tr-slow), background-color var(--tr-slow);
+}
+/* `.is-scrolled` vine din motion.css; `[data-stuck]` e forma din sursă.
+   Amândouă sunt suportate, ca un șablon să poată folosi oricare. */
+.site-header.is-scrolled,
+.site-header[data-stuck='true'] {
+  box-shadow: var(--sh-header);
+  background: var(--glass-scrolled);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  height: var(--header-h);
+}
+.logo { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--brand);
+  color: var(--accent-lift);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+}
+.logo-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-tight);
+  /* „Pensiunea Izora" e un nume din două cuvinte lângă o stemă mare: fără
+     asta se rupe pe două rânduri și antetul își pierde linia de bază. */
+  white-space: nowrap;
+}
+.logo-tag {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: var(--fw-semibold);
+}
+/* Sigla, cât încape în antet. 62px într-un antet de 74px lasă 6px sus și jos:
+   destul cât să respire, dar fără să atingă marginile — o siglă lipită de
+   linia de jos citește ca o greșeală de aliniere, nu ca un logo mare.
+   Lățimea o dă raportul fișierului; la o siglă lată cu numele scris în ea,
+   sub 60px numele devine ilizibil, deci de aici în jos nu se coboară. */
+.logo-img { height: 62px; width: auto; }
+
+.nav-links { display: flex; gap: 26px; list-style: none; }
+.nav-links a {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--ink-soft);
+  position: relative;
+  padding: 6px 0;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--accent);
+  /* scaleX în loc de width: rulează pe compositor (REGULI.md 11). */
+  transform: scaleX(0);
+  transform-origin: inline-start;
+  transition: transform var(--tr-base);
+}
+.nav-links a:hover::after,
+.nav-links a[aria-current='page']::after { transform: scaleX(1); }
+.nav-cta { display: flex; align-items: center; gap: var(--sp-3); }
+
+.burger { display: none; flex-direction: column; gap: 5px; padding: var(--sp-2); }
+.burger span { width: 22px; height: 1.5px; background: var(--ink); }
+
+/* ------------------------------------------------------------------------ hero */
+
+.hero {
+  position: relative;
+  min-height: min(88vh, 780px);
+  display: flex;
+  align-items: flex-end;
+  isolation: isolate;
+  background: var(--brand);
+}
+.hero-media { position: absolute; inset: 0; z-index: -2; }
+.hero-media img { width: 100%; height: 100%; object-fit: cover; opacity: 0.66; }
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-behind);
+  background: linear-gradient(
+    180deg,
+    var(--hero-veil-top) 0%,
+    var(--hero-veil-mid) 35%,
+    var(--hero-veil-bot) 100%
+  );
+}
+.hero-inner { width: 100%; padding: 120px 0 40px; color: var(--on-brand); }
+.hero h1 { color: var(--on-brand); max-width: 16ch; margin-bottom: 18px; }
+.hero-sub {
+  font-size: var(--fs-lg);
+  color: var(--on-brand-strong);
+  max-width: 52ch;
+  margin-bottom: 28px;
+}
+.hero-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--on-brand-glass);
+  border: 1px solid var(--on-brand-border);
+  backdrop-filter: blur(10px);
+  padding: var(--sp-2) 15px;
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--on-brand);
+}
+.pill-score {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: var(--fw-bold);
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: var(--fs-xs);
+}
+
+/* --------------------------------------------------------------------- booking */
+
+.booking {
+  background: var(--glass-bar);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius);
+  box-shadow: var(--sh-sm), var(--sh-lg);
+  padding: var(--sp-4);
+  display: grid;
+  grid-template-columns: 1.1fr 1.1fr 0.9fr auto;
+  gap: var(--sp-3);
+  align-items: end;
+}
+.bk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px var(--sp-3);
+  border-inline-end: 1px solid var(--line);
+}
+.bk-field:nth-of-type(3) { border-inline-end: 0; }
+.bk-field label {
+  font-size: 0.68rem;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bk-field input,
+.bk-field select {
+  border: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--ink);
+  width: 100%;
+  cursor: pointer;
+}
+.booking .btn { height: 52px; padding-inline: 30px; }
+.bk-note {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 10px var(--sp-3) 2px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.bk-note span { display: inline-flex; align-items: center; gap: 6px; }
+.bk-note svg { color: var(--positive); }
+
+/* A doua cale din bara de disponibilitate: WhatsApp, când butonul mare duce
+   în motorul de rezervări. `margin-inline-start: auto` îl împinge la capătul
+   rândului, ca să nu se citească drept a patra asigurare. */
+.bk-alt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bk-alt:hover { color: var(--ink); }
+.bk-alt svg { color: currentColor; }
+
+@media (max-width: 900px) {
+  /* Pe rând propriu: „auto" n-are ce împinge când blocul e deja stivuit. */
+  .bk-alt { margin-inline-start: 0; }
+}
+
+/* Placeholder-ul iframe-ului de rezervări (T12): dimensiune fixă, ca
+   încărcarea lui târzie să nu miște layout-ul. CLS 0. */
+.bk-frame-slot {
+  min-height: 620px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-alt);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--sp-6);
+}
+.bk-frame-slot iframe { width: 100%; height: 620px; border: 0; border-radius: var(--radius); }
+
+/* ----------------------------------------------------------------- trust strip */
+
+.trust { background: var(--surface-alt); border-block: 1px solid var(--line); }
+.trust .wrap {
+  display: grid;
+  grid-template-columns: repeat(var(--trust-cols, 5), 1fr);
+  padding-block: 22px;
+  text-align: center;
+}
+.trust-item { padding-inline: 10px; border-inline-end: 1px solid var(--line); }
+.trust-item:last-child { border-inline-end: 0; }
+.trust-item b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-regular);
+  color: var(--brand);
+}
+.trust-item span { font-size: var(--fs-xs); color: var(--muted); }
+
+/* ----------------------------------------------------------------------- perks */
+
+.on-brand { background: var(--brand); color: var(--on-brand); }
+.on-brand h2, .on-brand h3 { color: var(--on-brand); }
+.on-brand .lede { color: var(--on-brand-soft); }
+.on-brand .eyebrow { color: var(--accent-lift); }
+
+.perk {
+  background: var(--on-brand-wash);
+  border: 1px solid var(--on-brand-line);
+  border-radius: var(--radius);
+  padding: 26px var(--sp-6);
+  transition: background-color var(--tr-base), transform var(--tr-base);
+}
+.perk:hover { background: var(--on-brand-wash-2); border-color: var(--on-brand-border); }
+.perk-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-sm);
+  background: var(--accent-lift-icon);
+  color: var(--accent-lift);
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--sp-4);
+}
+.perk h3 {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  margin-bottom: 7px;
+  color: var(--on-brand);
+}
+.perk p { font-size: var(--fs-sm); color: var(--on-brand-dim); }
+
+.perk-footnote {
+  margin-top: var(--sp-10);
+  padding: var(--sp-6) 28px;
+  border-radius: var(--radius);
+  background: var(--accent-lift-tint);
+  border: 1px solid var(--accent-lift-edge);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+.perk-footnote p { font-size: var(--fs-sm); color: var(--on-brand-strong); max-width: 58ch; }
+.perk-footnote b { color: var(--accent-lift); }
+
+/* ----------------------------------------------------------------------- rooms */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--tr-slow), box-shadow var(--tr-slow), border-color var(--tr-slow);
+}
+/* NIMIC NU SE MIȘCĂ SUB CURSOR LA HOVER.
+   Cardul urca `var(--lift)` = -4px. Cu cursorul în ultimii 4 px ai
+   cardului, ridicarea îl scotea de sub mouse → `:hover` cădea →
+   cardul revenea → `:hover` se aprindea din nou. Măsurat în browser:
+   ținând mouse-ul pe marginea de jos, starea de hover a oscilat
+   1→0→1 fără ca pointerul să se mai miște. Cu tranziția de 420 ms,
+   asta se vede ca licărire — și cursorul însuși pâlpâia între mână și
+   săgeată, pentru că `cursor: pointer` se stinge odată cu hover-ul.
+   Aceeași capcană era pe butoane (-1/-2 px) și pe `.perk` (-3 px).
+   Ridicarea rămâne, dar din umbră: umbra nu schimbă geometria, deci
+   nu poate scăpa de sub cursor. */
+.card:hover {
+  box-shadow: var(--sh-sm), var(--sh-md);
+  border-color: transparent;
+}
+/* aspect-ratio ține locul pozei înainte să se încarce → CLS 0. */
+.card-media { position: relative; aspect-ratio: 4 / 3; background: var(--surface-alt); overflow: hidden; }
+.card-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s; }
+.card:hover .card-media img { transform: scale(1.045); }
+
+.ribbon {
+  position: absolute;
+  top: 13px;
+  inset-inline-start: 13px;
+  background: var(--glass-ribbon);
+  backdrop-filter: blur(6px);
+  padding: 5px var(--sp-3);
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--brand);
+}
+/* Se aprinde DOAR din disponibilitate reală, niciodată ca truc de
+   marketing (REGULI.md 3). */
+.ribbon[data-scarce='true'] { background: var(--attention); color: var(--on-accent); }
+
+.card-body { padding: 22px; display: flex; flex-direction: column; flex: 1; }
+.card-body h3 { margin-bottom: var(--sp-2); }
+/* Persoane · tip de pat · suprafață, sub numele camerei.
+   Un pas mai sus decât `--fs-xs`, la cererea clientului: „2 persoane,
+   pat matrimonial" e criteriul după care se alege camera, nu o notă de
+   subsol. Ierarhia față de titlu rămâne — `--fs-sm` e sub corpul de
+   text, iar titlul e cu mult peste amândouă. */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+.meta span { display: inline-flex; align-items: center; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; list-style: none; }
+.chip {
+  font-size: var(--fs-xs);
+  background: var(--surface-alt);
+  color: var(--ink-soft);
+  padding: 4px 10px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.price small {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.price b {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-medium);
+  color: var(--brand);
+  line-height: var(--lh-tight);
+  font-variant-numeric: tabular-nums;
+}
+.price b em {
+  font-style: normal;
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  color: var(--muted);
+  font-weight: var(--fw-medium);
+}
+.price .was { font-size: var(--fs-xs); color: var(--muted); text-decoration: line-through; margin-inline-start: 6px; }
+/* Se afișează în locul prețului când clientul nu a confirmat un tarif.
+   Un preț inventat e mai rău decât un gol (REGULI.md 3). */
+.price-ask { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--brand); }
+
+/* ------------------------------------------------------- tarife pe sezoane */
+/*
+ * Grila „290 lei / noapte — martie–mai", un rând per perioadă.
+ *
+ * Un `<dl>`, deci fiecare rând e o pereche `dt` (tariful) + `dd`
+ * (perioada). Rândul e un `flex` cu `baseline`: cifra și perioada stau
+ * pe aceeași linie de scris, oricât ar diferi mărimile lor.
+ *
+ * Tariful e cu o treaptă sub `.price b` — apar câte trei odată, deci la
+ * mărimea prețului unic ar striga toate trei și n-ar mai striga niciuna.
+ * Cifrele sunt tabulare (`.tabular`, pus în componentă): aliniate pe
+ * coloană, „290" și „1.400" se compară dintr-o privire.
+ */
+.preturi { display: grid; gap: 7px; }
+.pret-rand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.pret-rand dt {
+  font-family: var(--font-display);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--brand);
+  line-height: var(--lh-tight);
+}
+.pret-rand dd {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+/* Linia dintre tarif și perioadă. În markup nu există — acolo sunt două
+   câmpuri, nu un șir de text — deci se desenează aici, o singură dată. */
+.pret-rand dd::before { content: '— '; }
+
+/*
+ * ÎN SUBSOLUL UNUI CARD, LISTA PRIMEȘTE RÂNDUL EI.
+ *
+ * `.card-foot` e un rând orizontal: preț la stânga, buton la dreapta.
+ * Merge pentru un preț de patru cuvinte; cu trei rânduri de „320 lei /
+ * noapte — iunie–octombrie", butonul strânge coloana până când perioada
+ * cade pe rândul următor — și nu la toate trei, ci doar la cea mai
+ * lungă, deci lista iese în trepte.
+ *
+ * Deci: lista sus, pe toată lățimea, butonul dedesubt, la dreapta.
+ * Comutarea se face după conținut (`:has`), nu dintr-o clasă pusă în
+ * componentă: subsolul cu preț unic rămâne exact cum era.
+ */
+.card-foot:has(.preturi) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-4);
+}
+.card-foot:has(.preturi) > .btn { align-self: flex-end; }
+
+/* Pe pagina camerei sau a ofertei lista stă singură, ca bloc de sine
+   stătător, nu în subsolul strâmt al unui card: are aer și o treaptă în
+   plus de mărime. */
+.preturi-pagina { margin-top: var(--sp-8); }
+.preturi-pagina .pret-rand dt { font-size: var(--fs-lg); }
+
+/* --------------------------------------------------------------------- feature */
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--sh-hairline), var(--sh-md);
+}
+/* Motorul Șablonului 2: două feature-uri consecutive alternează. */
+.split[data-reverse='true'] .split-media { order: 2; }
+/* `position: relative` pentru `.ribbon`: blocul de pachet (T75) pune
+   badge-ul peste poză, iar `.ribbon` e poziționat absolut. */
+.split-media { position: relative; background: var(--surface-alt); min-height: 440px; }
+.split-media img { width: 100%; height: 100%; object-fit: cover; }
+.split-body {
+  background: var(--surface-alt);
+  padding: clamp(32px, 4.5vw, 58px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.split-body ul { list-style: none; margin: 22px 0 28px; display: grid; gap: 11px; }
+.split-body li { display: flex; gap: 11px; font-size: var(--fs-sm); color: var(--ink-soft); }
+.split-body li svg { color: var(--accent); flex-shrink: 0; margin-top: 3px; }
+
+/* ------------------------------------------------------ pachete și excursii */
+
+/*
+ * RITMUL ZONEI CAMERE → PACHETE → EXCURSII → LOCAȚIE (T75).
+ *
+ * Fiecare `<section>` primește mai sus un `padding-block` de până la
+ * 108 px. Pachetele sunt acum blocuri separate, deci pe porțiunea asta
+ * ajung una după alta cinci-șase secțiuni: între oricare două se adunau
+ * 216 px de fundal gol, plus cele 46 px de sub `.sec-head`. Aproape un
+ * ecran întreg de nimic, tăiat în felii — exact ce s-a raportat ca
+ * „goluri albe".
+ *
+ * Regula: un antet de secțiune primește aer DEASUPRA, ca să se despartă
+ * de ce a fost înainte, și niciunul DEDESUBT, fiindcă blocurile pe care
+ * le introduce vin imediat. Grupul se citește ca o singură coborâre.
+ *
+ * Stă în base.css, nu în skin-ul Șablonului 2: aceleași componente se
+ * randează și pe `/oferte`, care n-are skin, iar acolo ritmul trebuie să
+ * fie identic.
+ */
+.oferte-antet { padding-block: var(--section-pad) 0; }
+.oferte-antet .sec-head { margin-bottom: 0; }
+
+/* Blocul de pachet e un `.feature`, deci are aceeași structură `.split`.
+   Titlul e h3, ca la blocurile de locație: pachetele stau SUB antetul
+   secțiunii, nu sunt secțiuni de sine stătătoare. */
+.pachet-bloc { padding-block: clamp(18px, 2.4vw, 32px); }
+.pachet-bloc .split-body h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  line-height: 1.15;
+  letter-spacing: var(--display-tracking);
+}
+.pachet-bloc .split-body .lede { margin-top: var(--sp-3); }
+/* Programul zi cu zi are șapte-opt rânduri. Fără strângerea asta,
+   jumătatea cu text creștea peste poză, iar diferența redevenea aer. */
+.pachet-bloc .split-body ul { margin: 14px 0 18px; gap: 7px; }
+.pachet-bloc .split-media { min-height: 0; }
+
+/* Prețul dintr-un bloc de pachet. `.price` e gândit pentru subsolul unui
+   card, unde stă lipit de un buton; aici stă singur, deasupra
+   butoanelor, deci are nevoie de aerul lui. */
+.pachet-pret { margin-bottom: var(--sp-5); }
+
+/* Excursiile stau ÎN interiorul grupului — după pachete, înainte de
+   „Locația" —, deci păstrează ritmul strâns pe amândouă laturile.
+   Despărțirea de ce urmează o face antetul „Locația", care are el
+   `--section-pad` deasupra; unul și aici ar da 216 px între două
+   secțiuni vecine.
+
+   Excepția: pe `/oferte` excursiile sunt ultimul lucru din pagină, deci
+   acolo au nevoie de aer înainte de subsol. */
+.excursii { padding-block: clamp(18px, 2.4vw, 32px); }
+main > .excursii:last-child { padding-bottom: var(--section-pad); }
+.excursii .sec-head { margin-bottom: var(--sp-8); }
+.excursii .card-body .lede { font-size: var(--fs-sm); }
+
+/*
+ * ALINIEREA PE RÂND, în grila de excursii.
+ *
+ * Cardurile se întind deja la aceeași înălțime (grila o face) și
+ * subsolul e lipit jos (`.card-foot { margin-top: auto }`). Ce NU se
+ * alinia era mijlocul: „Excursie: Mila 23" încape pe un rând, „Excursie:
+ * Sulina și gura de vărsare a Dunării" pe două, deci rezumatul vecinului
+ * pornea cu un rând mai sus, iar între rezumat și subsol rămânea un gol
+ * inegal de la card la card. Cu poza fixă deasupra (4/3 la toate), asta
+ * se citește exact ca textul „decalat față de imagine" care a fost
+ * raportat.
+ *
+ * Titlul primește deci înălțimea a două rânduri, iar rezumatul a trei:
+ * pe cele patru texte reale, toate încap, deci nimic nu se taie —
+ * `min-height`, nu `height`, așa că un titlu de trei rânduri împinge în
+ * jos, nu se suprapune.
+ *
+ * DOAR PE MAI MULTE COLOANE. Sub 820px grila devine o singură coloană:
+ * acolo nu mai există „rând" de aliniat, iar înălțimile minime ar fi
+ * doar spațiu gol între titlu și text.
+ */
+@media (min-width: 821px) {
+  .excursii .card-body h3 { min-height: calc(2em * var(--lh-tight)); }
+  .excursii .card-body .lede { min-height: calc(3em * var(--lh-normal)); }
+}
+
+/* -------------------------------------------------- povestea și serviciile */
+
+/*
+ * „Povestea noastră" — primul bloc de text de sub hero.
+ *
+ * Măsura de citit e limitată la ~68 de caractere. Pe `.wrap` (1200px)
+ * un rând de proză trece de 120 de caractere, iar la întoarcerea de
+ * rând ochiul pierde începutul celui următor — cu patru paragrafe unul
+ * sub altul, se simte la fiecare.
+ */
+.poveste-text { max-width: 68ch; }
+.poveste-text p { color: var(--ink-soft); }
+.poveste-text p + p { margin-top: var(--sp-5); }
+
+/*
+ * Antetul serviciilor. Același ritm ca `.oferte-antet`: aer deasupra, ca
+ * să se despartă de camere, și niciunul dedesubt, fiindcă blocurile pe
+ * care le introduce vin imediat.
+ */
+.servicii-antet { padding-block: var(--section-pad) 0; }
+.servicii-antet .sec-head { margin-bottom: 0; }
+
+/* Proza de pe pagina unei oferte. Paragrafele erau un singur `<p>` cu
+   `white-space: pre-line`, deci nu aveau nevoie de spațiere între ele —
+   și nici n-o primeau. Acum sunt `<p>`-uri separate, deci și-o cer. */
+.oferta-proza { margin-top: var(--sp-8); max-width: 68ch; }
+.oferta-proza + .oferta-proza { margin-top: var(--sp-5); }
+
+/* Lista „Ce include" de pe pagina unei oferte — aceleași bife ca în
+   blocul de pe prima pagină, ca omul să recunoască ce a citit deja. */
+.lista-bifata { list-style: none; margin-top: var(--sp-5); display: grid; gap: 11px; }
+.lista-bifata li { display: flex; gap: 11px; color: var(--ink-soft); }
+.lista-bifata li svg { color: var(--accent); flex-shrink: 0; margin-top: 5px; }
+
+/* --------------------------------------------------------------------- events */
+
+.event { display: grid; grid-template-columns: 1fr 1fr; }
+.event-media { background: var(--surface-alt); min-height: 280px; }
+.event-media img { width: 100%; height: 100%; object-fit: cover; }
+.event-body { padding: var(--sp-8) 30px; display: flex; flex-direction: column; justify-content: center; }
+.capacity {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--accent);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-3);
+}
+.event-body h3 { font-size: var(--fs-xl); margin-bottom: 10px; }
+.event-body p { font-size: var(--fs-sm); color: var(--muted); margin-bottom: var(--sp-5); }
+
+/* --------------------------------------------------------------------- reviews */
+
+.review {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 26px;
+  display: flex;
+  flex-direction: column;
+}
+.stars { color: var(--accent); display: inline-flex; gap: 3px; margin-bottom: 14px; }
+.review blockquote {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-bottom: var(--sp-5);
+  flex: 1;
+}
+.review figcaption {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--accent-lift);
+  display: grid;
+  place-items: center;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+.review figcaption b { display: block; font-size: var(--fs-sm); }
+/* Sursa recenziei. Fără ea, componenta nu randează recenzia deloc. */
+.review figcaption span { font-size: var(--fs-xs); color: var(--muted); }
+
+/* Nota agregată — se afișează fără să numească platforma. */
+.rating-badge { display: inline-flex; align-items: baseline; gap: var(--sp-2); }
+.rating-badge b {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.rating-badge span { font-size: var(--fs-sm); color: var(--muted); }
+
+/* ------------------------------------------------------------------------ faq */
+
+.faq-item { border-bottom: 1px solid var(--line); }
+
+/* Forma nativă: <details class="faq-item"><summary class="faq-q">.
+   Funcționează fără JavaScript (REGULI.md 12). */
+.faq-q {
+  width: 100%;
+  text-align: start;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  padding: 22px 44px 22px 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  cursor: pointer;
+  list-style: none;
+}
+.faq-q::-webkit-details-marker { display: none; }
+.faq-q svg { color: var(--accent); flex-shrink: 0; transition: transform var(--tr-slow); }
+details.faq-item[open] > .faq-q svg,
+.faq-item[data-open='true'] .faq-q svg { transform: rotate(45deg); }
+
+/* Varianta animată, pentru șabloanele care o vor. `<details>` sare
+   direct la deschidere; grid-template-rows dă tranziția. */
+.faq-a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.32s ease; }
+details.faq-item[open] > .faq-a,
+.faq-item[data-open='true'] .faq-a { grid-template-rows: 1fr; }
+.faq-a > div { overflow: hidden; }
+.faq-a p { padding-bottom: 22px; color: var(--muted); font-size: var(--fs-sm); max-width: 76ch; }
+
+/* ---------------------------------------------------------------------- footer */
+
+.site-footer { background: var(--brand); color: var(--on-brand-dim); padding-top: 62px; }
+.site-footer h4 {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent-lift);
+  margin-bottom: 18px;
+}
+.site-footer a:hover { color: var(--on-brand); }
+.f-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.3fr; gap: var(--sp-10); padding-bottom: 46px; }
+.f-grid ul { list-style: none; display: grid; gap: 10px; font-size: var(--fs-sm); }
+.f-brand p { font-size: var(--fs-sm); margin: var(--sp-4) 0 var(--sp-5); max-width: 38ch; }
+/* Sigla, și în subsol: același fișier ca în antet, doar puțin mai mare —
+   subsolul are loc, iar aici e ultimul lucru pe care îl vede cineva înainte
+   să sune. Fără logo în date, rândul lipsește și rămâne doar numele scris. */
+.f-logo { display: block; height: 96px; width: auto; margin-bottom: var(--sp-3); }
+.f-social { display: flex; gap: 10px; }
+.f-social a {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--on-brand-border);
+  display: grid;
+  place-items: center;
+  transition: background-color var(--tr-fast), border-color var(--tr-fast);
+}
+.f-social a:hover { background: var(--on-brand-glass); border-color: var(--on-brand-ghost); }
+
+/* NAP — trebuie să fie identic cu Google Business Profile. */
+.f-nap { font-size: var(--fs-sm); display: grid; gap: 10px; }
+.f-nap div { display: flex; gap: 9px; }
+.f-nap b { color: var(--on-brand); font-weight: var(--fw-semibold); }
+
+/* Datele de identificare a firmei — obligatorii (REGULI.md 14). */
+.f-firma {
+  font-size: var(--fs-xs);
+  color: var(--on-brand-dim);
+  line-height: 1.7;
+  padding-block: var(--sp-5);
+  border-top: 1px solid var(--on-brand-line);
+  display: grid;
+  gap: 2px;
+}
+
+.f-bot {
+  border-top: 1px solid var(--on-brand-line);
+  padding-block: 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  font-size: var(--fs-xs);
+}
+.f-bot ul { display: flex; gap: 18px; flex-wrap: wrap; list-style: none; }
+
+/* ANPC și SOL — linkuri către paginile oficiale, nu text. */
+.f-anpc { display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: center; }
+.f-anpc img { height: 34px; width: auto; }
+
+/* --------------------------------------------------------------- sticky mobile */
+
+.mobile-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  display: none;
+  background: var(--glass-bar);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding: 11px var(--sp-4) calc(11px + env(safe-area-inset-bottom));
+  box-shadow: var(--sh-up);
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.mobile-bar small {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--muted);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.mobile-bar b {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-medium);
+  color: var(--brand);
+}
+
+/* ---------------------------------------------------------------- form + cookies */
+
+.field { display: grid; gap: 6px; margin-bottom: var(--sp-4); }
+.field label { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--ink-soft); }
+.field input,
+.field select,
+.field textarea {
+  font: inherit;
+  font-size: var(--fs-base);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  width: 100%;
+}
+.field input:focus-visible,
+.field textarea:focus-visible { border-color: var(--accent); }
+.field-check { display: flex; align-items: flex-start; gap: 10px; font-size: var(--fs-sm); }
+.field-check input { width: auto; margin-top: 4px; }
+.field-err { font-size: var(--fs-xs); color: var(--attention); }
+.field-hint { font-size: var(--fs-xs); color: var(--muted); margin: -8px 0 var(--sp-4); }
+
+/* Pagini legale — coloană îngustă, lizibilă. */
+.legal { max-width: 72ch; margin-inline: auto; padding-block: var(--sp-10); }
+.legal h1 { margin-bottom: var(--sp-2); }
+.legal h2 { font-size: var(--fs-2xl); margin-top: var(--sp-8); margin-bottom: var(--sp-3); }
+.legal p, .legal li { color: var(--ink-soft); line-height: 1.7; }
+.legal ul { padding-inline-start: var(--sp-5); display: grid; gap: 6px; margin-block: var(--sp-3); }
+.legal p { margin-block: var(--sp-3); }
+.legal-actualizat { font-size: var(--fs-sm); color: var(--muted); }
+.legal a { color: var(--accent); }
+.field[data-invalid='true'] input,
+.field[data-invalid='true'] textarea { border-color: var(--attention); }
+
+/* Honeypot: invizibil pentru om, prezent pentru bot. Nu `display:none`,
+   pe care unii boți îl detectează. */
+.hp {
+  position: absolute;
+  inset-inline-start: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-msg { border-radius: var(--r-sm); padding: var(--sp-4); font-size: var(--fs-sm); }
+.form-msg[data-tone='ok'] { background: color-mix(in srgb, var(--positive) 12%, transparent); color: var(--positive); }
+.form-msg[data-tone='err'] { background: var(--attention-tint); color: var(--attention); }
+
+.cookie-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: var(--sh-up);
+  padding: var(--sp-5) var(--container-pad) calc(var(--sp-5) + env(safe-area-inset-bottom));
+}
+.cookie-bar .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+.cookie-bar p { font-size: var(--fs-sm); color: var(--ink-soft); max-width: 68ch; }
+/* Refuzul are exact aceeași greutate vizuală ca acceptul. Un „Refuz"
+   ascuns într-un submeniu nu e consimțământ liber. */
+.cookie-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.cookie-cat { display: grid; gap: var(--sp-2); width: 100%; }
+/* Buton stilizat ca link — pentru „Setări cookies" din footer, revocabil. */
+.link-buton {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.link-buton:hover { color: var(--accent); }
+
+/* Motorul de rezervări în iframe, încărcat leneș (T12). Înălțime minimă fixă
+   pe placeholder ca layout-ul să nu sară la dezvăluire (CLS 0). */
+.iframe-rezervare {
+  display: grid;
+  place-items: center;
+  margin-top: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+/* Harta locației: se vede unde e pensiunea, clickul duce în Google Maps.
+   `.map-hit` acoperă iframe-ul, ca gestul să nu se piardă în panoramare. */
+.map-live {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-alt);
+  aspect-ratio: 4 / 3;
+}
+.map-live iframe { width: 100%; height: 100%; border: 0; display: block; }
+.map-hit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--sp-4);
+  /* Transparent în repaus: harta trebuie să se vadă, nu un voal peste ea. */
+  background: transparent;
+  transition: background var(--tr-base) var(--ease-out-expo);
+}
+.map-hit span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--r-full);
+  padding: var(--sp-3) var(--sp-5);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--sh-md);
+}
+@media (hover: hover) {
+  .map-hit:hover { background: var(--on-brand-wash); }
+}
+.map-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+
+@media (max-width: 820px) {
+  .map-live { aspect-ratio: 3 / 2; }
+}
+
+/* Galerie: thumbnail în listă, versiunea mare doar la deschidere. */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-3); }
+.gallery button { border-radius: var(--r-sm); overflow: hidden; aspect-ratio: 4 / 3; background: var(--surface-alt); }
+.gallery img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Meniu de restaurant. */
+.menu-cat { margin-bottom: var(--sp-10); }
+.menu-cat h3 { margin-bottom: var(--sp-5); }
+.menu-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--line);
+}
+.menu-row p { font-size: var(--fs-sm); color: var(--muted); }
+.menu-row b { font-variant-numeric: tabular-nums; color: var(--brand); white-space: nowrap; }
+.menu-info { min-width: 0; }
+.menu-nume { font-weight: 600; }
+/* Gramajul e o precizare, nu un titlu: aceeași linie, greutate mai mică. */
+.menu-gramaj { font-style: normal; font-weight: 400; color: var(--muted); }
+.menu-descriere { margin-top: var(--sp-2); max-width: 60ch; }
+.menu-nota { margin-top: var(--sp-1); font-size: var(--fs-xs); color: var(--brand); }
+.menu-alergeni { margin-top: var(--sp-1); font-size: var(--fs-xs); color: var(--muted); }
+/* Obligație de etichetare: în HTML mereu, pe ecran doar la cerere. */
+.menu-nutritie { margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--muted); }
+.menu-nutritie summary { cursor: pointer; width: fit-content; }
+.menu-nutritie p { font-size: var(--fs-xs); margin-top: var(--sp-1); }
+
+/* -------------------------------------------------------------- proposal chrome */
+/* Se randează doar când `SiteData.mockup.enabled` e adevărat, adică
+   într-o propunere, niciodată pe un site livrat (T30). */
+
+.mock-note {
+  background: var(--ink);
+  color: var(--on-brand-strong);
+  font-size: var(--fs-xs);
+  text-align: center;
+  padding: 9px var(--sp-5);
+}
+.mock-note b { color: var(--accent-lift); }
+
+.audit-toggle {
+  position: fixed;
+  inset-inline-end: var(--sp-5);
+  bottom: var(--sp-5);
+  z-index: var(--z-overlay);
+  background: var(--ink);
+  color: var(--on-brand);
+  border-radius: var(--r-full);
+  padding: 13px 22px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  box-shadow: var(--sh-xl);
+  transition: transform var(--tr-base), background-color var(--tr-base);
+}
+.audit-toggle:hover { background: var(--attention); }
+
+.audit-panel {
+  position: fixed;
+  inset-inline-end: var(--sp-5);
+  bottom: 78px;
+  z-index: var(--z-overlay);
+  width: min(420px, calc(100vw - 40px));
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--sh-xl);
+  padding: 22px;
+}
+.audit-panel h3 { font-size: var(--fs-lg); margin-bottom: 4px; }
+.audit-panel > p { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 18px; }
+.finding { padding: 14px 0; border-top: 1px solid var(--line); }
+.finding:first-of-type { border-top: 0; }
+.finding-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 6px; }
+.sev {
+  font-size: 0.63rem;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.sev[data-level='critic'] { background: var(--attention-tint); color: var(--attention); }
+.sev[data-level='important'] { background: var(--accent-tint); color: var(--accent); }
+.sev[data-level='minor'] { background: var(--surface-alt); color: var(--muted); }
+.finding h4 { font-family: var(--font-body); font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.finding dl { display: grid; gap: 5px; font-size: var(--fs-xs); margin-top: 6px; }
+.finding dt {
+  font-weight: var(--fw-semibold);
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.finding dd { color: var(--muted); }
+
+body[data-audit='true'] [data-finding] {
+  outline: 2px dashed var(--attention);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+/* ----------------------------------------------------------------- responsive */
+
+@media (max-width: 1024px) {
+  .g4 { grid-template-columns: repeat(2, 1fr); }
+  .f-grid { grid-template-columns: 1fr 1fr; gap: 34px; }
+  .nav-links { display: none; }
+  .burger { display: flex; }
+
+  /*
+   * Panoul de meniu de pe telefon.
+   *
+   * Aceeași listă `.nav-links` din antet, doar așezată altfel: pe ecran lat
+   * e un rând, aici e o coloană care cade de sub antet. Nu se duplică
+   * linkurile într-un al doilea `<ul>` — unul singur, randat pe server,
+   * rămâne citibil și fără JavaScript.
+   *
+   * `data-meniu` îl pune `MeniuMobil` pe antet. Antetul e `position: sticky`,
+   * deci e deja bloc de referință pentru `position: absolute` de aici.
+   */
+  .site-header[data-meniu='deschis'] .nav-links {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    /* Opac, nu `--glass-header`: panoul stă peste conținutul paginii, iar
+       prin blur s-ar citi textul de dedesubt printre linkuri. */
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--sh-header);
+    padding: var(--sp-2) var(--sp-4) var(--sp-3);
+    /* Meniu mai lung decât ecranul: se derulează în panou, nu iese sub
+       marginea de jos. */
+    max-height: calc(100dvh - var(--header-h));
+    overflow-y: auto;
+  }
+  .site-header[data-meniu='deschis'] .nav-links a {
+    display: block;
+    padding: 14px 2px;
+    font-size: var(--fs-base);
+    border-bottom: 1px solid var(--line);
+    /* Culoarea se scrie explicit, nu se moștenește: panoul are fundal opac,
+       deci un skin care albește linkurile antetului cât timp e peste hero
+       (Șablonul 4) le-ar face invizibile exact aici. */
+    color: var(--ink);
+  }
+  .site-header[data-meniu='deschis'] .nav-links li:last-child a { border-bottom: 0; }
+  /* Sublinierea care crește sub link e un efect de hover cu mouse; pe
+     panoul de telefon ar rămâne agățată după atingere. */
+  .site-header[data-meniu='deschis'] .nav-links a::after { content: none; }
+
+  /* Burgerul devine „X" cât timp panoul e deschis: altfel butonul arată
+     identic în ambele stări și nu spune cum se închide. */
+  .burger span { transition: transform var(--tr-base), opacity var(--tr-base); }
+  .site-header[data-meniu='deschis'] .burger span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .site-header[data-meniu='deschis'] .burger span:nth-child(2) { opacity: 0; }
+  .site-header[data-meniu='deschis'] .burger span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  .booking { grid-template-columns: 1fr 1fr; }
+  .booking .btn { grid-column: 1 / -1; width: 100%; }
+  .bk-field { border-inline-end: 0; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+}
+
+@media (max-width: 820px) {
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .split, .event { grid-template-columns: 1fr; }
+  .split[data-reverse='true'] .split-media { order: 0; }
+  .split-media, .event-media { min-height: 260px; }
+  .trust .wrap { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .trust-item { border-inline-end: 0; }
+  .nav-cta .btn-ghost { display: none; }
+  /*
+   * Și butonul principal din antet, nu doar cel fantomă.
+   *
+   * Sub 820px apare `.mobile-bar`, care poartă exact același
+   * „Verifică disponibilitatea", lipit jos, mereu la îndemână. Cel din antet
+   * devine un al doilea buton identic — care, cu comutatorul de limbă alături
+   * (`Engleză: da`), umfla `.nav-cta` la 432px într-un ecran de 375px: pagina
+   * căpăta scroll orizontal, iar butonul ieșea tăiat pe jumătate.
+   *
+   * Nu s-a văzut până acum fiindcă niciun client livrat n-avea a doua limbă:
+   * fără comutator, rândul încăpea la limită.
+   */
+  .nav-cta .btn-primary { display: none; }
+  .mobile-bar { display: flex; }
+  /* Loc pentru bara lipită, ca să nu acopere subsolul. */
+  body { padding-bottom: 74px; }
+  .hero-inner { padding-top: 84px; }
+}
+
+@media (max-width: 640px) {
+  .booking { grid-template-columns: 1fr; }
+  .topbar-l .topbar-item:first-child { display: none; }
+  .audit-toggle { bottom: 88px; inset-inline-end: var(--sp-3); }
+  .audit-panel { bottom: 146px; }
+  .cookie-bar { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 520px) {
+  .trust .wrap { grid-template-columns: 1fr 1fr; }
+  .f-grid { grid-template-columns: 1fr; }
+  /*
+   * Pe telefon nu mai încap pe un rând sigla mare, numele scris, comutatorul
+   * de limbă și burgerul: pe 375px numele intra PESTE „Română / English".
+   * Rămâne sigla — la clientul ăsta numele e scris chiar în ea, deci nu se
+   * pierde, doar nu se mai repetă de două ori pe același rând.
+   *
+   * 54px, nu 46: la o siglă lată care își conține numele, fiecare pixel de
+   * înălțime tăiat scoate un pixel și din litere. 54px lasă sigla la ~79px
+   * lățime, ceea ce pe 375px stă lejer lângă un burger singur.
+   */
+  .logo-img { height: 54px; }
+  .logo-name { display: none; }
+}
+
+/* ----------------------------------------------------- pagină de ofertă (T61) */
+.oferta-media {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.oferta-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ------------------------------------------------------ video vertical (T60) */
+/*
+ * Player pentru clipuri verticale de telefon (9/16). Posterul e singurul
+ * lucru randat până la click; `<video>` se montează din JS (VideoVertical).
+ */
+.video-vertical {
+  width: 100%;
+  max-width: 380px;
+  margin-inline: auto;
+  aspect-ratio: 9 / 16;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--brand);
+  box-shadow: var(--sh-lg);
+}
+
+.video-vertical-play,
+.video-vertical-el {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-vertical-el { object-fit: cover; background: var(--brand); }
+
+.video-vertical-play {
+  position: relative;
+  padding: 0;
+  background: var(--brand);
+  cursor: pointer;
+}
+.video-vertical-play img { object-fit: cover; }
+
+/* Ținta de atingere e tot posterul; discul e doar semnalul vizual. */
+.video-vertical-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: var(--on-brand-glass);
+  color: var(--on-brand);
+  border: 1px solid var(--on-brand-border);
+  backdrop-filter: blur(8px);
+  transition: transform var(--tr-base), background-color var(--tr-base);
+}
+/* Triunghiul e vizual mai greu pe stânga; îl împingem optic spre centru. */
+.video-vertical-icon .icon { transform: translateX(2px); }
+.video-vertical-play:hover .video-vertical-icon {
+  background: var(--on-brand-ghost);
+  transform: scale(1.06);
+}
+
+/* Secțiunea de prezentare: text lângă player, pe fundal contrastant. */
+.prezentare { background: var(--surface-alt); }
+.prezentare-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-12);
+  align-items: center;
+}
+.prezentare-text .sec-head { margin-bottom: 0; }
+
+@media (max-width: 760px) {
+  .prezentare-grid { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------------------------ zona */
+/*
+ * Pagina „Zona" (T05): atracțiile din jur, câte una pe rând, cu poza pe o
+ * parte. Nu e o grilă de carduri intenționat — sunt puține la număr și
+ * fiecare are de spus două-trei propoziții care chiar se citesc. O grilă
+ * de trei pe rând le-ar tăia la un rând de text și le-ar transforma în
+ * exact lista de bifat pe care pagina o evită.
+ */
+.zona-lista { display: grid; gap: var(--sp-8); }
+
+.zona-item {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: var(--sp-8);
+  align-items: start;
+  padding-bottom: var(--sp-8);
+  border-bottom: 1px solid var(--line);
+}
+.zona-item:last-child { border-bottom: 0; padding-bottom: 0; }
+
+/* Fără poză, textul ocupă tot rândul — nu rămâne o coloană goală. */
+.zona-item:not(:has(.zona-poza)) { grid-template-columns: 1fr; }
+
+.zona-poza { border-radius: var(--r-md); overflow: hidden; aspect-ratio: 3 / 2; background: var(--surface-alt); }
+.zona-poza img { width: 100%; height: 100%; object-fit: cover; }
+
+.zona-text h3 { margin-bottom: var(--sp-2); }
+.zona-text p { color: var(--ink-soft); }
+
+.zona-distanta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 760px) {
+  .zona-item { grid-template-columns: 1fr; gap: var(--sp-4); }
+}
+
+/* --------------------------------------------------------------- contact */
+/*
+ * Pagina `/contact`: datele și indicațiile de acces într-o coloană,
+ * formularul în cealaltă. Harta vine ca secțiune proprie, dedesubt, pe
+ * toată lățimea — e componenta care se folosește și pe prima pagină, nu
+ * o variantă a ei.
+ *
+ * `align-items: start` ca formularul să nu se întindă degeaba când
+ * coloana de lângă e mai lungă (sau invers). Sub 820px `.g2` devine o
+ * singură coloană din regula generală, deci nu e nevoie de nimic aici.
+ */
+.contact-grid { align-items: start; gap: var(--sp-12); margin-top: var(--sp-8); }
+
+.contact-lista { list-style: none; display: grid; gap: var(--sp-4); }
+.contact-lista li { display: flex; align-items: center; gap: var(--sp-3); color: var(--ink-soft); }
+.contact-lista li svg { color: var(--accent); flex-shrink: 0; }
+.contact-lista a { color: var(--ink); text-decoration: none; }
+.contact-lista a:hover { color: var(--accent); }
+
+.contact-acces { margin-top: var(--sp-10); max-width: 60ch; }
+.contact-acces h2 { font-size: var(--fs-xl); margin-bottom: var(--sp-4); }
+.contact-acces p { color: var(--ink-soft); }
+.contact-acces p + p { margin-top: var(--sp-4); }
+
+/* Formularul într-un card: îl desparte de textul de lângă, care altfel
+   ar curge vizual în câmpuri. */
+.contact-formular {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(20px, 3vw, 32px);
+}
+
+/* --------------------------------------------------------- reduced motion */
+/*
+ * Taie durata ȘI întârzierea. Doar durata ar lăsa un element revelat
+ * la `opacity: 0` timp de 700 ms — adică exact bug-ul pe care regula
+ * încearcă să-l prevină (T02, criteriu de terminare).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ------------------------------------------------ dialog de rezervare (T64) */
+/*
+ * Calendarul care se deschide din „Verifică disponibilitatea". Fără motor
+ * de rezervări, dialogul nu afișează disponibilitate — adună perioada și
+ * numărul de oaspeți, apoi deschide WhatsApp cu ele scrise.
+ */
+.mdl {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: color-mix(in srgb, var(--shadow-base) 45%, transparent);
+  backdrop-filter: blur(3px);
+  overflow-y: auto;
+}
+
+.mdl-panou {
+  width: min(760px, 100%);
+  max-height: calc(100dvh - var(--sp-8));
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  padding: var(--sp-6);
+}
+.mdl-panou:focus { outline: none; }
+
+.mdl-cap { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+.mdl-cap h2 { margin: 0; font-size: var(--fs-lg); }
+.mdl-subiect { margin: var(--sp-2) 0 0; color: var(--muted); font-size: var(--fs-sm); }
+
+.mdl-inchide {
+  flex: none;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--tr-base);
+}
+.mdl-inchide:hover { background: var(--surface-alt); }
+
+.mdl-rezumat {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+.mdl-camp {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-3) var(--sp-4);
+  min-height: 72px;
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+}
+.mdl-camp small { color: var(--muted); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; }
+.mdl-camp b { font-size: var(--fs-sm); }
+
+.mdl-pas { display: flex; align-items: center; gap: var(--sp-3); }
+.mdl-pas button {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--ink);
+  font-size: 17px; line-height: 1;
+  cursor: pointer;
+}
+.mdl-pas button:disabled { opacity: 0.35; cursor: default; }
+.mdl-pas button:not(:disabled):hover { background: var(--surface-alt); }
+
+.mdl-jos {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-4);
+  margin-top: var(--sp-5);
+  flex-wrap: wrap;
+}
+.mdl-nopti { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
+/* Un singur buton, sau două (motor + WhatsApp) — aceeași cutie, ca footerul
+   să nu-și schimbe geometria când locația capătă motor de rezervări. */
+.mdl-actiuni { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.mdl-jos .btn:disabled { opacity: 0.45; pointer-events: none; }
+.mdl-nota { margin: var(--sp-4) 0 0; color: var(--muted); font-size: var(--fs-xs); }
+
+/* --- calendarul propriu-zis --- */
+.cal { margin-top: var(--sp-5); position: relative; }
+.cal-bara { position: absolute; inset: 0 0 auto auto; display: flex; gap: var(--sp-2); }
+.cal-nav {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cal-nav:disabled { opacity: 0.3; cursor: default; }
+.cal-nav:first-child .icon { transform: rotate(180deg); }
+
+.cal-luni { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
+.cal-titlu { margin: 0 0 var(--sp-3); font-weight: 600; font-size: var(--fs-sm); }
+.cal-zile { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-cap {
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  padding-bottom: var(--sp-2);
+}
+
+.cal-zi {
+  aspect-ratio: 1;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: background-color var(--tr-base), color var(--tr-base);
+}
+.cal-zi:disabled { color: var(--line); cursor: default; }
+.cal-zi:not(:disabled):hover { background: var(--surface-alt); }
+.cal-zi[data-intre] { background: var(--accent-tint); border-radius: 0; }
+.cal-zi[data-in],
+.cal-zi[data-out] { background: var(--brand); color: var(--on-brand); font-weight: 600; }
+.cal-zi[data-in] { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.cal-zi[data-out] { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+
+@media (max-width: 700px) {
+  .mdl-panou { padding: var(--sp-5) var(--sp-4); }
+  /* Sosirea și plecarea stau alături; oaspeții iau rândul lor. Trei câmpuri
+     stivuite împingeau calendarul complet sub ecran. */
+  .mdl-rezumat { grid-template-columns: 1fr 1fr; }
+  .mdl-camp:last-child { grid-column: 1 / -1; }
+  .mdl-camp b { font-size: var(--fs-xs); }
+
+  /* Pe telefon încape o singură lună; a doua rămâne la un tap de „înainte". */
+  .cal-luni { grid-template-columns: 1fr; }
+  .cal-luni > :nth-child(2) { display: none; }
+
+  /* Butonul rămâne lipit de marginea de jos a panoului: calendarul e mai
+     înalt decât ecranul, iar un buton de trimis ascuns sub scroll e un
+     buton neapăsat. */
+  .mdl-jos {
+    position: sticky;
+    bottom: calc(var(--sp-5) * -1);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-2);
+    margin: var(--sp-5) calc(var(--sp-4) * -1) 0;
+    padding: var(--sp-3) var(--sp-4) var(--sp-5);
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+  .mdl-nopti { text-align: center; }
+  .mdl-jos .btn { justify-content: center; }
+  .mdl-nota { text-align: center; }
+  /* Pe telefon cele două acțiuni se stivuiesc, cu rezervarea jos: footerul e
+     lipit de marginea de jos a panoului, iar degetul stă acolo — deci butonul
+     apăsat cel mai des trebuie să fie cel mai de jos. Ordinea din DOM e deja
+     asta (WhatsApp, apoi rezervare), deci nimic de inversat. */
+  .mdl-actiuni { flex-direction: column; align-items: stretch; width: 100%; }
+}
+
+/* Camera dorită, în dialog. Apare doar la butoanele generale — cele din
+   dreptul unei camere știu deja răspunsul și nu mai întreabă. */
+.mdl-camera {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+.mdl-camera small {
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.mdl-camera select,
+.mdl-camera input[type='text'] {
+  width: 100%;
+  height: 48px;
+  padding-inline: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+/* Câmpul de nume folosește aceeași cutie ca selectorul de cameră: stau unul
+   sub altul în dialog, iar orice diferență de înălțime sau de chenar s-ar
+   citi ca o greșeală. `appearance: none` scoate stilizarea proprie a
+   Safari-ului pe iOS, care altfel rotunjește colțurile inputului și rupe
+   perechea. */
+.mdl-camera input[type='text'] {
+  appearance: none;
+}
+.mdl-camera input[type='text']::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* Blocul de rezervare prin WhatsApp — alternativa la calendarul de mai
+   sus, la locațiile fără motor de rezervări. Aceeași cutie de sticlă, ca
+   să citească tot ca „bară de acțiune", dar cu text și butoane în loc de
+   trei câmpuri care n-au ce răspunde. */
+.wa-block {
+  background: var(--glass-bar);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius);
+  box-shadow: var(--sh-sm), var(--sh-lg);
+  padding: var(--sp-6);
+  display: grid;
+  gap: var(--sp-5);
+  align-items: center;
+  grid-template-columns: 1fr auto;
+}
+.wa-block-text h2 { margin: 0; }
+.wa-block-text .lede { margin-top: var(--sp-3); margin-bottom: 0; }
+.wa-block-actions { justify-content: flex-end; }
+.wa-block .btn { height: 52px; padding-inline: 26px; }
+.wa-block .bk-note { grid-column: 1 / -1; margin-top: 0; }
+
+@media (max-width: 820px) {
+  .wa-block { grid-template-columns: 1fr; padding: var(--sp-5); }
+  .wa-block-actions .btn { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ------------------------------------------- bandă de semnătură (T-Delta) */
+
+/* O frază, mare, peste o fotografie întunecată. Stilul stă în MOTOR, nu
+   în skin-ul Șablonului 4: secțiunea e înregistrată în `dispecer.tsx`,
+   deci ORICE șablon o poate cere dintr-un rând în `setari.md`. O
+   secțiune înregistrată dar nestilizată ar apărea ca text negru peste
+   fotografie (REGULI.md 1). */
+.semnatura {
+  position: relative;
+  isolation: isolate;
+  background: var(--brand);
+  color: var(--on-brand);
+  padding-block: clamp(96px, 12vw, 176px);
+  text-align: center;
+}
+.semnatura-media { position: absolute; inset: 0; z-index: var(--z-behind); }
+/* Mai întunecată decât hero-ul (0,66): aici fotografia e fundal pentru
+   text, nu subiect. Peste ~0,4 fraza începe să concureze cu ea. */
+.semnatura-media img { width: 100%; height: 100%; object-fit: cover; opacity: 0.34; }
+
+/* 30ch, centrat: fraza trebuie citită dintr-o privire, pe două-trei
+   rânduri. Peste atât devine paragraf și își pierde rostul. */
+.semnatura-inner { max-width: 30ch; }
+.semnatura .eyebrow { color: var(--accent-lift); }
+.semnatura-citat { margin: 0; border: 0; padding: 0; }
+.semnatura-text {
+  font-family: var(--font-display);
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--display-tracking);
+  color: var(--on-brand);
+  text-wrap: balance;
+  margin: 0;
+}
+.semnatura-semnat {
+  margin-top: var(--sp-6);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--on-brand-dim);
+}
+
+/* -------------------------------------------------- mozaic foto (T-Delta) */
+
+/* Cinci cadre: unul mare pe două coloane și două rânduri, patru mici în
+   jurul lui. Cu patru coloane, cele cinci umplu exact două rânduri —
+   fără niciun gol și fără nicio poziționare explicită, doar din
+   `grid-auto-flow`. */
+.mozaic-grila {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: clamp(150px, 17vw, 230px);
+  gap: var(--sp-3);
+}
+.mozaic-celula {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface-alt);
+}
+.mozaic-celula[data-mare='true'] { grid-column: span 2; grid-row: span 2; }
+.mozaic-celula img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--tr-slow) var(--ease-out-expo);
+}
+.mozaic-celula:hover img { transform: scale(1.04); }
+.mozaic-link { margin-top: var(--sp-8); text-align: center; }
+
+@media (max-width: 900px) {
+  /* Două coloane. Celula mare rămâne pe lățimea întreagă, dar pe un
+     singur rând: pe telefon, două rânduri de poză o fac cât ecranul. */
+  .mozaic-grila { grid-template-columns: repeat(2, 1fr); }
+  .mozaic-celula[data-mare='true'] { grid-column: span 2; grid-row: span 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mozaic-celula img { transition: none; }
+  .mozaic-celula:hover img { transform: none; }
+}

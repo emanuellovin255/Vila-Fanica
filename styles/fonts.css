@@ -1,0 +1,106 @@
+/* ============================================================
+   fonts.css — fonturi self-hosted, cu diacriticele românești.
+
+   Sursă: Web Tamplate/_core/css/fonts.css (74 linii), portat.
+
+   Zero request către CDN-uri externe (REGULI.md 9). Un font de la
+   Google e și mai lent, și o problemă de GDPR: IP-ul vizitatorului
+   pleacă la Google înainte de orice consimțământ.
+
+     Satoshi — titluri (700 / 900). Grotesc geometric.
+     Inter   — text curent. Fișier variabil: un singur woff2 per
+               subset acoperă 100–900.
+
+   Fontul mono din sursă (JetBrains Mono, 2 fișiere, 29 KB) NU s-a
+   portat: nișa asta nu are eyebrow-uri tehnice, ticker sau etichete
+   monospațiate. `--font-mono` din tokens.css cade pe fontul mono al
+   sistemului. Un font descărcat și nefolosit e greutate curată.
+
+   ------------------------------------------------------------
+   DIACRITICE — verificat, nu presupus
+   ------------------------------------------------------------
+   Greșeala frecventă e `ș` și `ț` cu SEDILĂ (U+015F, U+0163 —
+   turcesc, greșit în română) în loc de VIRGULĂ DEDESUBT (U+0219,
+   U+021B — corect). Unele fonturi au doar varianta cu sedilă.
+
+   S-a citit tabela `cmap` din fiecare fișier. Rezultat:
+
+     Ă ă  U+0102 U+0103   → inter-ro-ext, satoshi-700, satoshi-900
+     Â â  U+00C2 U+00E2   → inter-ro-latin, satoshi-700, satoshi-900
+     Î î  U+00CE U+00EE   → inter-ro-latin, satoshi-700, satoshi-900
+     Ș ș  U+0218 U+0219   → inter-ro-ext, satoshi-700, satoshi-900
+     Ț ț  U+021A U+021B   → inter-ro-ext, satoshi-700, satoshi-900
+
+   Toate prezente, toate în forma cu virgulă. Formele cu sedilă
+   (U+015E-015F, U+0162-0163) sunt și ele păstrate în subset, ca un
+   text lipit dintr-un document vechi să nu ajungă cu pătrățele.
+
+   Șirul de control, care trebuie să se randeze în ambele familii, la
+   toate grosimile:
+     Cazare în Munții Apuseni · Ședere · Ciubăr · Mic dejun inclus
+     ĂÂÎȘȚ ăâîșț
+
+   ------------------------------------------------------------
+   GREUTATE — condiție de livrare, nu aspirație (REGULI.md 10)
+   ------------------------------------------------------------
+   Fișierele din `_core/assets/fonts/` însumau 216 KB, din care o
+   pagină în română descărca 158 KB — peste ținta de 120 KB din T03.
+
+   S-au subsetat pe intervalele chiar folosite (latin de bază +
+   diacritice românești + punctuație tipografică + €), păstrând
+   `tnum` pentru `font-variant-numeric: tabular-nums` din base.css.
+   Rețeta e reproductibilă: `scripts/subset-fonturi.sh`.
+
+     pe disc                    216 KB → 68 KB
+     descărcat pe o pagină RO   158 KB → 51 KB
+
+   ------------------------------------------------------------
+   PRELOAD
+   ------------------------------------------------------------
+   Se face din `app/layout.tsx`, pe UN SINGUR fișier: `inter-ro-latin`,
+   fontul primei secțiuni. Preload la tot înseamnă preload la nimic —
+   patru fișiere care se bat pe aceeași bandă amână exact fontul care
+   contează pentru LCP.
+   ============================================================ */
+
+/* ---------- Satoshi — titluri ---------- */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-700-ro.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-900-ro.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- Inter — text curent, variabil 100–900 ----------
+   Împărțit în două fișiere pe `unicode-range`. Browserul descarcă
+   fișierul „ext" doar dacă pagina chiar conține un ă, ș sau ț — adică
+   întotdeauna în română, niciodată pe /en. Așa pagina în engleză
+   plătește 36 KB, nu 40. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-ro-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+2013-2014, U+2018-201A, U+201C-201E,
+                 U+2020-2022, U+2026, U+2030, U+2039-203A, U+20AC,
+                 U+2122, U+2212, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-ro-ext.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  /* Ă ă · Œ œ · Ş ş · Ţ ţ · Ș ș Ț ț */
+  unicode-range: U+0102-0103, U+0152-0153, U+015E-015F, U+0162-0163,
+                 U+0218-021B;
+}

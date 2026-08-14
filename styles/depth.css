@@ -1,0 +1,83 @@
+/* ============================================================
+   depth.css — profunzimea, redusă la zero.
+
+   ISTORIC. Fișierul ăsta a purtat un strat 3D complet: carduri care
+   urcau din spatele planului paginii (`d-rise`), un coverflow pe
+   ofertele de pe telefon, panouri care se așezau înclinat, hero-ul
+   care se retrăgea în adâncime la derulare și o înclinare la mouse
+   scrisă din `lib/depth.ts`. Toate erau legate de scroll prin
+   `animation-timeline: view()`.
+
+   DE CE S-A SCOS (cerere client, august 2026)
+   -------------------------------------------
+   Două probleme, una estetică și una funcțională:
+
+   1. Efectul se citea ca „poza se rotește și dă zoom" la fiecare
+      derulare. Clientul a cerut explicit ceva simplu.
+   2. Mai grav: `animation-range: entry 12% cover 42%` ținea conținutul
+      la `opacity: 0` până când secțiunea acoperea 42% din parcurs. Pe
+      secțiunile înalte — `.oferte` are peste 2600 px — asta însemna
+      ecrane întregi de alb între secțiuni, exact „spațiile goale albe"
+      raportate. Măsurat în browser: `.oferte > .wrap` ajungea la
+      `opacity: 0` cu `matrix3d(...)` aplicat, în mijlocul paginii.
+
+   Intrarea în pagină rămâne integral pe seama lui motion.css: un fade
+   simplu, pe verticală, prin `.reveal-child`. Perspectivele, rotațiile
+   și înclinarea la mouse nu mai există nicăieri.
+
+   `lib/depth.ts` nu mai e montat din `components/Miscare.tsx`, deci
+   nici `--rx`/`--ry` nu se mai scriu.
+
+   Ce rămâne aici: caruselul orizontal al ofertelor pe telefon. Nu e un
+   efect 3D — e layout, singurul mod în care patru carduri înalte încap
+   pe un ecran de telefon fără să devină o coloană de 4000 px.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1 · OFERTELE PE TELEFON — bandă cu snap, fără rotații
+   Ținta e GRILA de carduri, nu secțiunea: `.oferte` e `<section>`-ul,
+   iar cardurile stau două niveluri mai jos, în `.wrap > .grid`. Pe
+   `.oferte .grid`, marginea negativă anulează chiar padding-ul lui
+   `.wrap`, care e părintele direct — banda iese fix cât ecranul, fără
+   scroll orizontal pe pagină.
+   ------------------------------------------------------------ */
+@media (max-width: 899px) {
+  .oferte .grid {
+    grid-auto-flow: column;
+    /* Cardul ocupă toată lățimea utilă, iar golul vine exclusiv din
+       padding. Așa gutiera din stânga e egală cu cea din dreapta la
+       orice poziție, deci și primul card stă centrat. Padding-ul e în
+       vw, nu în %: procentele s-ar raporta la containerul din spate,
+       nu la banda lată cât ecranul. */
+    grid-auto-columns: 100%;
+    gap: var(--sp-3);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(var(--container-pad) * -1);
+    padding-inline: 15vw;
+    scroll-padding-inline: 15vw;
+    padding-block: var(--sp-4);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .oferte .grid::-webkit-scrollbar { display: none; }
+  .oferta { scroll-snap-align: center; }
+
+  /* Densitate mai mare pe telefon: cu 7–8 rânduri de listă, cardul
+     ajungea mai înalt decât ecranul. */
+  .oferta { gap: var(--sp-4); padding: var(--sp-6) var(--sp-5); }
+}
+
+/* ------------------------------------------------------------
+   2 · CARDURILE — un chenar care se aprinde, atât
+   Fără perspectivă, fără `rotateX`/`rotateY`, fără `translateZ`.
+   `contain` rămâne: oprește invalidarea la marginea cardului și nu
+   costă nimic vizual.
+   ------------------------------------------------------------ */
+.camera,
+.oferta,
+.facilitate,
+.spatiu-eveniment,
+.recenzie {
+  contain: layout paint;
+}
