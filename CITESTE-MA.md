@@ -79,19 +79,25 @@ Pagina `/politica-anulare` există, dar e generică — și e chiar pagina pe ca
 cineva care ezită să scrie pe WhatsApp.
 → `date/12-firma-si-documente-legale.md`
 
-### 6 · Recenziile — cea mai slabă secțiune de pe site
+### 6 · Recenziile — scoase complet, deci site-ul n-are nicio dovadă socială
 
-Acum: nota 10 din 10, dar din **zece păreri**, cea mai recentă din **2022**, de pe
-amfostacolo.ro. Vila nu e pe Booking.
+**Nu există secțiune de păreri pe site.** Tot ce se găsise era nota 10 din 10 de pe
+amfostacolo.ro — dar din **zece păreri**, cea mai recentă din **2022**. Vila nu e pe Booking.
+O secțiune cu un singur citat vechi de patru ani atrage atenția asupra lipsei, nu asupra
+calității, deci e scoasă: și rândul din `setari.md`, și datele din `date/08-…`, ca nota să nu
+mai ajungă nici în schema pe care o citește Google.
 
-**Ce trebuie, în ordine:**
+E decizia corectă acum, dar înseamnă că **nimic de pe site nu spune că altcineva a stat aici
+și a fost mulțumit** — la o vilă care se rezervă printr-un mesaj pe WhatsApp, aia e o lipsă
+reală.
+
+**Ce o umple, în ordine:**
 1. recenziile de pe fișa de Google — se copiază 4–6, cuvânt cu cuvânt, în `date/08-…`
 2. dacă nu există fișă de Google, se face: gratuit, douăzeci de minute
 3. un mesaj scurt pe WhatsApp a doua zi după plecare, cu linkul de recenzie — numărul fiecărui
    oaspete e deja acolo, chiar de la rezervare
 
-⚠ Dacă nu se strâng recenzii în câteva luni, secțiunea merită scoasă din `setari.md`: o singură
-părere din 2022 atrage atenția asupra lipsei, nu asupra calității.
+Apoi se adaugă la loc rândul „Recenzii: da" în `setari.md`. Codul secțiunii e neatins.
 
 ### 7 · Engleza — un cuvânt, dar întâi o întrebare
 
@@ -101,7 +107,7 @@ Toate cele zece fișiere din `en/` sunt **scrise și gata**. Se pornesc cu `Engl
 Sunt oprite fiindcă nu știm dacă cineva răspunde în engleză, iar tot site-ul duce într-o
 conversație pe WhatsApp — o pagină `/en` aduce mesaje la care poate n-are cine să răspundă.
 
-⚠ **Merită întrebat și despre maghiară.** Vama Borș e la 25 km, Budapesta la 300.
+**Atenție — merită întrebat și despre maghiară.** Vama Borș e la 25 km, Budapesta la 300.
 
 ### 8 · Certificatul de clasificare
 

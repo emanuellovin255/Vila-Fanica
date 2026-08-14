@@ -44,7 +44,7 @@ Engleza e scrisă și gata, dar oprită — vezi mai jos.
 Se generează automat, pe legislația RO, din `12-firma-si-documente-legale.md` și din ce e
 pornit în `setari.md`. Nu se scriu de mână.
 
-⚠ `/politica-anulare` e **generică deocamdată**: câmpul „Anulare:" din `12-…` e gol, fiindcă
+**Atenție — `/politica-anulare` e generică deocamdată:** câmpul „Anulare:" din `12-…` e gol, fiindcă
 nimeni n-a scris încă politica reală. La o vilă cu rezervări directe, aia e chiar pagina pe
 care o caută cineva acolo. Vezi nota din fișier.
 

@@ -189,6 +189,29 @@
   margin-inline: auto;
 }
 
+/* „Povestea noastră", pe desktop: coloana de text se centrează sub titlu.
+
+   Motorul o lasă lipită de marginea stângă — `.poveste-text` are doar
+   `max-width: 68ch`, fără `margin-inline` — ceea ce e corect într-un
+   aranjament aliniat la stânga. Aici însă antetul de secțiune e centrat
+   (regula de mai sus), iar un titlu centrat cu textul lui împins într-un
+   colț se citește ca o greșeală de așezare, nu ca o intenție.
+
+   Rândurile sunt centrate și ele, nu doar cutia: e limbajul pe care
+   șablonul îl folosește deja la subtitlul din prima secțiune și la textele
+   introductive de secțiune. Paragrafele de aici au trei rânduri fiecare,
+   iar pragul de la care proza centrată devine greu de urmărit e mai sus.
+
+   NUMAI PE DESKTOP. Sub 821px coloana ocupă oricum toată lățimea, deci
+   centrarea cutiei n-ar face nimic — dar rândurile centrate pe un ecran
+   îngust rup marginea stângă de care se agață ochiul la fiecare rând nou. */
+@media (min-width: 821px) {
+  .skin-irlandez .poveste .poveste-text {
+    margin-inline: auto;
+    text-align: center;
+  }
+}
+
 /* --------------------------------------------------------------- 3 · hero */
 
 .skin-irlandez .hero-irlandez {

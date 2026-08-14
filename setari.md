@@ -138,7 +138,6 @@ Feature-uri alternante: da
 Mozaic foto: da
 Bandă de semnătură: da
 Locație: da
-Recenzii: da
 Întrebări frecvente: da
 Hartă: da
 Secțiune de închidere: da
@@ -183,16 +182,23 @@ Secțiune de închidere: da
   7. LOCAȚIE — ștrandul Apollo, cu trei blocuri. E aproape o repetare a feature-urilor, și e
      intenționat: e singurul lucru pe care îl repetăm, fiindcă e singurul care decide.
 
-  8. RECENZII — pornită, deși e slabă (nota 10 din 10, dar din zece păreri). Vezi
-     date/08-recenzii.md. ⚠ DACĂ NU SE STRÂNG RECENZII DE GOOGLE ÎN CÂTEVA LUNI, merită
-     scoasă: o secțiune de păreri cu un singur citat din 2022 atrage atenția asupra lipsei, nu
-     asupra calității.
-
-  9. ÎNTREBĂRI FRECVENTE — opt întrebări, toate din informații publicate de ei. Google le poate
+  8. ÎNTREBĂRI FRECVENTE — opt întrebări, toate din informații publicate de ei. Google le poate
      arăta direct în rezultate, dar numai fiindcă secțiunea chiar se vede în pagină.
 
-  10. HARTĂ — la final, înainte de închidere. Adresa e ultima informație de care are nevoie
-      cineva care a citit deja tot.
+  9. HARTĂ — la final, înainte de închidere. Adresa e ultima informație de care are nevoie
+     cineva care a citit deja tot.
+
+  ⚠ RECENZIILE SUNT SCOASE COMPLET, la cererea clientului. Nu doar rândul de aici: și datele
+  din `date/08-recenzii.md`, ca nota să nu mai ajungă nici în schema pe care o citește Google.
+
+  Decizia e bună. Ce aveam era nota 10 din 10 de pe amfostacolo.ro — dar din ZECE păreri, cea
+  mai recentă din 2022. O secțiune de recenzii cu un singur citat vechi de patru ani atrage
+  atenția asupra lipsei, nu asupra calității: omul numără citatele înainte să le citească.
+
+  SE REPORNEȘTE ÎN DOI PAȘI, când există recenzii adevărate:
+    1. se scriu în `date/08-recenzii.md` (instrucțiunile sunt acolo)
+    2. se adaugă la loc rândul „Recenzii: da" în lista de mai sus, între „Locație" și
+       „Întrebări frecvente"
 
   Secțiuni care EXISTĂ, dar sunt oprite: serviciile, ofertele, excursiile, clipul de
   prezentare, meniul restaurantului, spațiile de evenimente. Textele lor sunt neatinse în

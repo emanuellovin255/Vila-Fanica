@@ -21,7 +21,7 @@ pe care numai gazdele le pot da. `npm run verifica` le semnalează la fiecare ru
 Avem deja denumirea (VILA FANICA SRL) și CUI-ul (46778737) — dar amândouă merită confirmate pe
 o factură de-a lor, iar celelalte două lipsesc de tot.
 
-⚠ **`npm run verifica` NU se oprește pentru asta**, fiindcă vede că denumirea și CUI-ul sunt
+**Atenție — `npm run verifica` NU se oprește pentru asta**, fiindcă vede că denumirea și CUI-ul sunt
 completate. Nu înseamnă că e în regulă: datele complete de identificare ale comerciantului sunt
 obligatorii în subsolul oricărui site care vinde sau colectează date, iar lipsa lor e motiv de
 amendă ANPC. E primul lucru pe care îl verifică un control și singurul de pe lista asta care
@@ -53,7 +53,7 @@ costă bani dacă rămâne așa.
 |---|---|
 | **Fotografii mari** | cele 11 primite sunt 414×414 px, salvate din Facebook. Vezi mai jos |
 | **Poze cu apartamentul** | fără ele, apartamentul nu e deloc pe site — vezi `date/04-camere.md` |
-| **Recenzii de Google** | acum e o singură părere, din 2022 — vezi `date/08-recenzii.md` |
+| **Recenzii de Google** | secțiunea de păreri e scoasă complet, fiindcă n-avem ce arăta — vezi `date/08-recenzii.md` |
 | **Linkul paginii de Facebook** | pozele vin de acolo, dar adresa nu e confirmată |
 
 Plus, la publicare: domeniul în `NEXT_PUBLIC_SITE_URL`, iar pentru formular `DESTINATAR` și
@@ -90,7 +90,7 @@ cu foișorul și grătarul. Toate sunt scrise pe site ca text, dar niciuna nu se
 | Camerele: nume, poze, dotări (prețurile sunt goale intenționat) | [`date/04-camere.md`](date/04-camere.md) |
 | **Cercurile cu facilități** | [`date/05-facilitati.md`](date/05-facilitati.md) |
 | Pachete și oferte | [`date/06-oferte-si-excursii.md`](date/06-oferte-si-excursii.md) |
-| Recenziile și nota medie | [`date/08-recenzii.md`](date/08-recenzii.md) |
+| Recenziile și nota medie (acum scoase) | [`date/08-recenzii.md`](date/08-recenzii.md) |
 | Întrebările frecvente | [`date/09-intrebari-frecvente.md`](date/09-intrebari-frecvente.md) |
 | Textele butoanelor de rezervare | [`date/10-rezervari-si-plati.md`](date/10-rezervari-si-plati.md) |
 | Culorile și fonturile | [`date/11-culori-si-fonturi.md`](date/11-culori-si-fonturi.md) |
@@ -148,10 +148,13 @@ Ordinea vine din [`setari.md`](setari.md); mutând un rând acolo, secțiunea ur
 | 9 | Mozaicul foto | se strânge singur din pozele deja folosite |
 | 10 | Banda de semnătură | `03-pagina-principala.md` |
 | 11 | Ștrandul Apollo și Băile Felix | `13-zona-si-atractii.md` |
-| 12 | Recenziile | `08-recenzii.md` |
-| 13 | Întrebările frecvente | `09-intrebari-frecvente.md` |
-| 14 | Harta | coordonatele din `02-telefon-email-si-adresa.md` |
-| 15 | Ultimul îndemn | `03-pagina-principala.md` → `## Secțiunea de închidere` |
+| 12 | Întrebările frecvente | `09-intrebari-frecvente.md` |
+| 13 | Harta | coordonatele din `02-telefon-email-si-adresa.md` |
+| 14 | Ultimul îndemn | `03-pagina-principala.md` → `## Secțiunea de închidere` |
+
+**Recenziile nu sunt pe listă**, fiindcă secțiunea e scoasă complet — nu avem ce arăta.
+Se pune la loc scriind părerile în `date/08-recenzii.md` și adăugând rândul „Recenzii: da" în
+`setari.md`, între „Locație" și „Întrebări frecvente".
 
 Lista completă a paginilor, cu adrese: **[PAGINI.md](PAGINI.md)**.
 
