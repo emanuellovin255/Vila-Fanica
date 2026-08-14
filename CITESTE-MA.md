@@ -144,6 +144,43 @@ Când vine al lor, se pune în loc **cuvânt cu cuvânt** și secțiunea urcă p
 
 ---
 
+## Deploy pe Vercel — cine comite contează
+
+Proiectul e în echipa Vercel **directory21**, iar contul care are acces e **`emanuellovin255`**
+— același care deține repo-ul.
+
+Vercel verifică **autorul commit-ului**, nu cine face push-ul. Dacă un commit e semnat cu o
+adresă de e-mail legată de alt cont de GitHub, deployment-ul iese cu:
+
+```
+Status: BLOCKED
+The Deployment was blocked because the commit author
+does not have contributing access to the project on Vercel.
+```
+
+Nu e o eroare de build — build-ul nici nu pornește (`0ms`). Un push nou cu aceeași identitate
+e blocat la fel.
+
+**Repo-ul are deja identitatea corectă setată local**, deci nu e nimic de făcut la fiecare
+commit:
+
+```bash
+git config user.email
+```
+
+Trebuie să răspundă `307233697+emanuellovin255@users.noreply.github.com`. Dacă vreodată
+răspunde altceva (de exemplu după un clone nou, unde se moștenește configul global), se pune
+la loc:
+
+```bash
+git config user.email "307233697+emanuellovin255@users.noreply.github.com"
+```
+
+**Cealaltă cale**, dacă vrei să poți comite și de pe contul `emanuellovin2`: îl adaugi ca
+membru în echipa Vercel, la Settings → Members. Atunci ambele conturi pot declanșa deploy-uri.
+
+---
+
 ## Următorul pas
 
 ```bash
